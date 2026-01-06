@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.venv/
+.env
+
+# OS
+.DS_Store
+
+# Data (keep only small samples)
+data/external/
+data/processed/
+data/generated/
+
+# Large binaries
+*.xlsx
+*.parquet
+*.bak
+*.csv
+
+# Optional: logs
+*.log
