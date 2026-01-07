@@ -1,12 +1,15 @@
-# basket_ai — Multi-Signal Basket Recommendation Pipeline
+# basket_ai — Multi-Signal Basket Recommendation System (Candidate Generation → Learning-to-Rank)
 
-A production-style, reproducible **candidate generation pipeline** for basket-based
-recommendation systems, built using multiple complementary signals and evaluated via
-offline diagnostics and recall-based metrics.
+A production-style, end-to-end **basket-based recommendation pipeline** that covers the
+full **pre-ranking → ranking → online inference simulation** flow.
 
-This project focuses explicitly on the **pre-ranking stage** of a recommender system,
-where the primary objective is to generate a **high-quality, diverse, and robust
-candidate pool** for downstream ranking models.
+The project is intentionally designed to reflect **real-world recommender system
+architecture**, where performance is dominated not by a single model, but by the
+**quality, diversity, and robustness of candidate generation**, followed by a
+**lightweight but effective ranking stage**.
+
+This repository demonstrates how multiple weak-to-moderate signals can be combined,
+diagnosed, and ranked into a stable recommendation system.
 
 ---
 
@@ -16,267 +19,259 @@ Raw Data
 ├── Transactions
 ├── Product metadata
 ├── Category hierarchy
-├── External trends
 ↓
 Feature & Graph Construction
-├── Co-occurrence matrix
+├── Basket co-occurrence graph
 ├── Association rules
 ├── Category tree
-├── Embeddings (Item2Vec)
+├── Item embeddings (Item2Vec-style)
 ↓
 Candidate Generation (Multi-Signal)
-├── Rules-based
-├── Co-occurrence
+├── Rules-based candidates
+├── Co-occurrence candidates
 ├── Category expansion
-├── Embedding similarity
+├── Embedding neighbors
 ↓
 Candidate Pool Diagnostics
-├── Coverage
+├── Coverage & sparsity
 ├── Source diversity
 ├── Recall@K
 ↓
-Learning-to-Rank (XGBoost Ranker)
+Learning-to-Rank (LightGBM LambdaRank)
 ↓
 Offline Evaluation
+↓
+Online Inference Simulation (Mock Serving)
 
 ---
 
-## 1. Motivation and Problem Framing
+## 1. Motivation & Problem Framing
 
-In large-scale recommender systems, overall performance is often constrained not by
-the ranking model itself, but by the **quality of the candidate pool**.
+In large-scale recommender systems, overall performance is often constrained **before**
+any sophisticated model is applied.
 
-If relevant items are not surfaced during candidate generation, no downstream model
-can recover them.
+If relevant items are **not surfaced during candidate generation**, no downstream ranking
+model can recover them.
 
-This project addresses the following core questions:
+This project focuses on the following core questions:
 
-- Can we generate a **non-empty, sufficiently rich candidate pool** for most baskets?
-- Do different recommendation signals reinforce each other?
-- How stable is candidate generation across basket sizes and sparsity levels?
-- Does multi-signal blending improve recall over single-signal approaches?
+- Can we reliably generate **non-empty and sufficiently rich candidate pools**?
+- Do heterogeneous recommendation signals reinforce each other?
+- How stable is candidate generation across basket sizes and sparsity regimes?
+- Does a simple learning-to-rank model improve over heuristic blending?
+- Can the system be executed in an **online, low-latency serving setting**?
 
-The project is deliberately designed to isolate and evaluate **candidate generation**
-as a standalone system component.
+Rather than treating recommendation as a single black-box model, this project explicitly
+models the **system layers** used in production recommender pipelines.
 
 ---
 
 ## 2. Design Principles
 
-The pipeline is built around senior-level engineering principles.
-
 ### 2.1 Separation of Concerns
-- Candidate generation is treated as a **distinct system layer**
-- Ranking and learning-to-rank are intentionally deferred until candidate quality is validated
+- Candidate generation, ranking, and serving are treated as **independent layers**
+- Each layer is validated before moving to the next
 
 ### 2.2 Reproducibility Over Convenience
-- Large datasets are excluded from version control
-- All processed data and artifacts are **fully regenerable via scripts**
+- Large raw datasets are excluded from version control
+- All processed tables and artifacts are **fully regenerable**
+- Deterministic random seeds are used where applicable
 
 ### 2.3 Multi-Signal Redundancy
-- Multiple weak-to-moderate signals are preferred over a single strong signal
-- Agreement across signals is treated as an implicit confidence measure
+- No single signal is assumed to be sufficient
+- Agreement across signals acts as an implicit confidence measure
 
 ### 2.4 Offline Validation First
-- Candidate quality is validated before any model training
-- Emphasis on coverage, diversity, and recall-based diagnostics
+- Candidate quality is evaluated **before** ranking
+- Emphasis on recall, coverage, and robustness — not accuracy alone
 
 ---
 
 ## 📁 Repository Structure
 
-BASKET_AI/
+basket_ai/
 ├── data/
-│   ├── external/                 # Raw external datasets
-│   ├── generated/                # Derived graphs & embeddings
+│   ├── external/                 # Raw external datasets (not versioned)
+│   ├── generated/                # Graphs, embeddings, rule tables
 │   ├── processed/                # Final parquet tables
 │
 ├── notebooks/
-│   ├── 01_eda_baseline.ipynb     # Data understanding & design decisions
+│   ├── 01_eda_baseline.ipynb
 │   ├── 02_models_reco_candidates.ipynb
+│   ├── 03_models_ranking.ipynb
 │
 ├── src/
-│   ├── data_generation/          # Graphs, embeddings, synthetic users
+│   ├── data_generation/          # Rules, graphs, embeddings
 │   ├── data_processing/          # Basket & transaction builders
 │
 └── README.md
 
+---
+
+## 3. Notebook Overview
+
+### 3.1 `01_eda_baseline.ipynb` — Data Understanding & Framing
+
+- Exploratory analysis of baskets and item distributions
+- Basket size and sparsity diagnostics
+- Validation of data assumptions used later in modeling
+- Establishes **design constraints** for candidate generation
 
 ---
 
-## 3. Data Pipeline Overview
+### 3.2 `02_models_reco_candidates.ipynb` — Multi-Signal Candidate Generation
 
-### 3.1 Raw to Processed Baskets
+This notebook implements **independent candidate generators**, each producing candidates
+without knowledge of the others.
 
-Raw transactional data is transformed into two core parquet tables:
+#### Implemented Signals
 
-- **baskets.parquet**
+1. **Association Rules**
+   - Pair-based Apriori-style rules
+   - Filtered by support, confidence, and lift
+   - Captures strong conditional item relationships
+
+2. **Basket Co-occurrence**
+   - Frequency-based item–item co-occurrence
+   - High-recall, popularity-weighted signal
+
+3. **Category-Level Expansion**
+   - Category hierarchy–driven fallback candidates
+   - Reduces cold-start and sparsity issues
+
+4. **Item Embedding Neighbors**
+   - Item2Vec-style embeddings trained on basket sequences
+   - Captures latent semantic similarity
+
+#### Multi-Signal Blending
+
+- Candidates are unioned into a single pool
+- For each candidate, the system tracks:
+  - blended score
+  - number of supporting signals
+  - exact source combination
+
+This enables signal ablation and robustness analysis.
+
+---
+
+### 3.3 `03_models_ranking.ipynb` — Learning-to-Rank & Online Inference Simulation
+
+This notebook completes the pipeline.
+
+#### Learning-to-Rank (LightGBM LambdaRank)
+
+- Training data constructed via **basket-level grouping**
+- One held-out item per basket used as positive label
+- Features used:
+  - `blended_score`
+  - `n_sources`
+  - `basket_size`
+
+The ranker learns to re-order candidates **within each basket context**.
+
+#### Offline Ranking Evaluation
+
+- NDCG@K and HitRate@K computed on validation baskets
+- Comparison against baseline (heuristic blended score)
+- Feature importance inspection
+
+#### Online Inference Simulation
+
+A production-style inference flow is simulated:
+
+1. Candidate generation from live basket context
+2. Feature construction (serving-safe)
+3. Ranker scoring
+4. Top-N recommendation output
+5. Response serialization (JSON-compatible)
+
+This validates:
+- serving-time feature availability
+- low-latency data flow
+- stable system interface
+
+---
+
+## 4. Data Pipeline
+
+Raw transactional data is transformed into two canonical tables:
+
+- **`baskets.parquet`**
   - One row per basket
   - Basket-level metadata
 
-- **basket_items.parquet**
+- **`basket_items.parquet`**
   - One row per `(basket, item)`
   - Canonical basket–item relationship table
 
-These tables are rebuilt locally using:
+These are rebuilt using:
 
-`src/data_processing/build_baskets_tables.py`
+src/data_processing/build_baskets_tables.py
 
-This design ensures that:
-- the repository remains lightweight
-- data lineage is explicit
-- results are reproducible end-to-end
+This keeps the repository lightweight while preserving full reproducibility.
 
 ---
 
-## 4. Candidate Generation Signals
+## 5. Evaluation Methodology
 
-Each signal produces candidates **independently**, without knowledge of other signals.
+### 5.1 Candidate-Level Diagnostics
+- Candidate count distribution
+- Empty candidate pool rate
+- Source diversity per candidate
+- Sensitivity to basket size
 
-### 4.1 Association Rules (Pair-Based Apriori-lite)
+### 5.2 Hold-Out Recall@K
+- One item removed from each basket
+- Candidates generated from remaining context
+- Hit recorded if held-out item appears in top-K
 
-- Basket-level item co-occurrence is converted into pairwise rules
-- Both directions (A → B and B → A) are evaluated
-- Rules are filtered using:
-  - minimum pair frequency
-  - confidence threshold
-  - lift threshold
-
-This signal captures **strong conditional relationships** between items.
-
----
-
-### 4.2 Basket Co-occurrence Frequency
-
-- Counts how frequently item pairs appear in the same basket
-- Acts as a high-recall, popularity-weighted signal
-- Particularly effective for common and medium-frequency items
+### 5.3 Ranking Metrics
+- NDCG@K
+- HitRate@K
+- Baseline vs ranker comparison
 
 ---
 
-### 4.3 Category-Level Generalization
+## 6. Key Findings
 
-- Items in the basket are mapped to their categories
-- Popular items from those categories are surfaced
-- Provides **fallback coverage** when item-level signals are sparse
-
----
-
-### 4.4 Item Embedding Neighbors (Item2Vec-style)
-
-- Item-to-item embeddings learned from basket sequences
-- Nearest neighbors are used as candidates
-- Captures **latent semantic similarity** beyond direct co-occurrence
+- Candidate pools are **non-empty for nearly all baskets**
+- Multi-signal blending outperforms any single signal
+- Co-occurrence and rules provide strong recall
+- Embeddings add semantic diversity
+- Category expansion stabilizes sparse baskets
+- LightGBM ranker improves ordering over heuristic blending
+- Simple features already provide meaningful ranking gains
 
 ---
 
-## 5. Multi-Signal Blending Strategy
+## 7. Why This Architecture Matters
 
-Candidates from all sources are unioned into a single pool.
+This project mirrors how modern recommender systems are built in production:
 
-For each candidate, the system tracks:
-- aggregated blended score
-- number of supporting signals
-- exact source combination
-
-This enables:
-- signal ablation analysis
-- multi-source reinforcement
-- robustness diagnostics
+- Candidate generation is **explicitly modeled and validated**
+- Ranking is treated as a **refinement stage**, not a miracle fix
+- Online constraints are considered from the start
+- The system remains interpretable, debuggable, and extensible
 
 ---
 
-## 6. Offline Evaluation Methodology
+## 8. Future Extensions
 
-Because this system focuses on **candidate generation**, evaluation relies on
-industry-standard offline diagnostics rather than regression metrics.
-
-### 6.1 Robustness Diagnostics
-
-Across random baskets:
-- candidate count distribution
-- empty candidate pool rate
-- average and maximum number of sources per candidate
-- sensitivity to basket size
-
-### 6.2 Hold-Out Recall@K
-
-- One item is removed from each basket
-- Candidates are generated from remaining context
-- A hit is recorded if the held-out item appears in the top-K candidates
-
-This directly measures **candidate coverage quality**.
-
-### 6.3 Signal Ablation
-
-Recall@K is computed separately for:
-- association rules only
-- co-occurrence only
-- category only
-- embedding only
-- blended multi-signal pool
-
-This reveals each signal’s marginal contribution.
-
----
-
-## 7. Key Findings
-
-- Candidate pools are **non-empty for the vast majority of baskets**
-- Multi-signal blending consistently improves recall over single signals
-- Co-occurrence and rules provide strong baseline coverage
-- Embeddings contribute semantic diversity
-- Category-level candidates reduce cold-start sparsity
-- Basket size correlates moderately with candidate richness
-
-These results validate the pipeline as a **reliable foundation for ranking models**.
-
----
-
-## 8. Why Ranking Is Intentionally Deferred
-
-This project intentionally stops **before full ranking optimization**.
-
-The objective is to ensure that:
-- relevant items are surfaced early
-- candidate generation is stable and explainable
-- downstream models are not bottlenecked by poor recall
-
-Ranking models can be swapped, retrained, or personalized independently once
-candidate quality is guaranteed.
-
----
-
-## 9. Future Extensions
-
-This pipeline is fully compatible with:
-
-- Learning-to-Rank (XGBoost / LightGBM)
+- Personalized ranking features
+- User embeddings
 - Feature store integration
-- Online inference simulation
-- FastAPI-based model serving
-- Dashboarding (Looker / Streamlit)
-
----
-
-## 10. References
-
-- Aggarwal, C. C. (2016). *Recommender Systems: The Textbook*. Springer.
-- Sarwar et al. (2001). *Item-Based Collaborative Filtering Recommendation Algorithms*.
-- Mikolov et al. (2013). *Distributed Representations of Words and Phrases*.
-- Covington et al. (2016). *Deep Neural Networks for YouTube Recommendations*.
-- Gomez-Uribe & Hunt (2016). *The Netflix Recommender System*.
-- Google RecSys Practices: Candidate Generation & Ranking Architecture.
-- Industry patterns from Amazon, Netflix, and YouTube recommender pipelines.
+- FastAPI deployment
+- Real-time monitoring dashboards
+- A/B testing framework
 
 ---
 
 ## Author
 
 **Gizem Totkanlı**  
-Data Scientist — ML / DL / AI  
+Data Scientist — Machine Learning / AI  
 
 Portfolio Project:  
-**Multi-Signal Recommendation Candidate Generation Pipeline**
-
+**Multi-Signal Basket Recommendation System**
 
