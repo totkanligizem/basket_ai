@@ -1,0 +1,305 @@
+/* =========================================================
+   GLOBAL
+   ========================================================= */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI",
+    Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;
+  background: radial-gradient(
+      circle at 20% 20%,
+      rgba(80, 100, 255, 0.18),
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 80% 10%,
+      rgba(180, 60, 120, 0.18),
+      transparent 40%
+    ),
+    #0b1020;
+  color: #e6e8ef;
+}
+
+/* =========================================================
+   PAGE LAYOUT
+   ========================================================= */
+
+.page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px 28px 40px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  margin-top: 6px;
+  opacity: 0.8;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.controls {
+  min-width: 260px;
+}
+
+.control-label {
+  font-size: 12px;
+  opacity: 0.75;
+  margin-bottom: 6px;
+}
+
+/* =========================================================
+   DROPDOWN
+   ========================================================= */
+
+.dropdown .Select-control {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+}
+
+.dropdown .Select-menu-outer {
+  background: #11162a;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dropdown .Select-option {
+  padding: 10px 14px;
+}
+
+.dropdown .Select-option.is-selected,
+.dropdown .Select-option.is-focused {
+  background: rgba(120, 140, 255, 0.2);
+}
+
+/* Selected value readability */
+.dropdown .Select-value-label,
+.dropdown .Select-value,
+.dropdown .Select-placeholder {
+  color: #f2f2f2 !important;
+  font-weight: 600;
+}
+
+/* =========================================================
+   TOP BAR
+   ========================================================= */
+
+.topbar {
+  margin: 16px 0 24px;
+}
+
+.pill {
+  display: inline-block;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+/* =========================================================
+   CONTENT LAYOUT
+   ========================================================= */
+
+.content {
+  margin-top: 8px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.stack {
+  display: grid;
+  gap: 18px;
+}
+
+/* =========================================================
+   CARDS
+   ========================================================= */
+
+.card {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.06),
+    rgba(255, 255, 255, 0.02)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  padding: 18px 20px 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.card-title-mini {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.card-body {
+  font-size: 14px;
+}
+
+/* =========================================================
+   TEXT BLOCKS
+   ========================================================= */
+
+.p {
+  line-height: 1.55;
+  opacity: 0.92;
+}
+
+.bullets {
+  margin-top: 10px;
+  padding-left: 18px;
+}
+
+.bullets li {
+  margin-bottom: 6px;
+  line-height: 1.45;
+}
+
+.note {
+  margin-top: 10px;
+  opacity: 0.78;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+/* =========================================================
+   KPI CARDS
+   ========================================================= */
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.kpi {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.kpi-label {
+  opacity: 0.75;
+  font-size: 12px;
+}
+
+.kpi-value {
+  font-size: 28px;
+  font-weight: 800;
+  margin-top: 6px;
+  letter-spacing: -0.02em;
+}
+
+.kpi-sub {
+  opacity: 0.8;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.kpi-foot {
+  opacity: 0.75;
+  font-size: 12px;
+  margin-top: 10px;
+}
+
+/* =========================================================
+   TABLES (EDA / RULES)
+   ========================================================= */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 6px;
+}
+
+.table th {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0.75;
+  padding: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.table td {
+  padding: 10px;
+  font-size: 13px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table-note {
+  opacity: 0.75;
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+/* =========================================================
+   GRAPHS
+   ========================================================= */
+
+.js-plotly-plot .plotly {
+  border-radius: 14px;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1100px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .controls {
+    width: 100%;
+  }
+
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
