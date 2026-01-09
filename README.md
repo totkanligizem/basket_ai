@@ -15,32 +15,32 @@ diagnosed, and ranked into a stable recommendation system.
 
 ## 🧠 System Architecture (High-Level)
 
-Raw Data
-├── Transactions
-├── Product metadata
-├── Category hierarchy
-↓
-Feature & Graph Construction
-├── Basket co-occurrence graph
-├── Association rules
-├── Category tree
-├── Item embeddings (Item2Vec-style)
-↓
-Candidate Generation (Multi-Signal)
-├── Rules-based candidates
-├── Co-occurrence candidates
-├── Category expansion
-├── Embedding neighbors
-↓
-Candidate Pool Diagnostics
-├── Coverage & sparsity
-├── Source diversity
-├── Recall@K
-↓
-Learning-to-Rank (LightGBM LambdaRank)
-↓
-Offline Evaluation
-↓
+Raw Data  
+├── Transactions  
+├── Product metadata  
+├── Category hierarchy  
+↓  
+Feature & Graph Construction  
+├── Basket co-occurrence graph  
+├── Association rules  
+├── Category tree  
+├── Item embeddings (Item2Vec-style)  
+↓  
+Candidate Generation (Multi-Signal)  
+├── Rules-based candidates  
+├── Co-occurrence candidates  
+├── Category expansion  
+├── Embedding neighbors  
+↓  
+Candidate Pool Diagnostics  
+├── Coverage & sparsity  
+├── Source diversity  
+├── Recall@K  
+↓  
+Learning-to-Rank (LightGBM LambdaRank)  
+↓  
+Offline Evaluation  
+↓  
 Online Inference Simulation (Mock Serving)
 
 ---
@@ -89,21 +89,23 @@ models the **system layers** used in production recommender pipelines.
 
 ## 📁 Repository Structure
 
-basket_ai/
-├── data/
-│   ├── external/                 # Raw external datasets (not versioned)
-│   ├── generated/                # Graphs, embeddings, rule tables
-│   ├── processed/                # Final parquet tables
-│
-├── notebooks/
-│   ├── 01_eda_baseline.ipynb
-│   ├── 02_models_reco_candidates.ipynb
-│   ├── 03_models_ranking.ipynb
-│
-├── src/
-│   ├── data_generation/          # Rules, graphs, embeddings
-│   ├── data_processing/          # Basket & transaction builders
-│
+basket_ai/  
+├── data/  
+│   ├── external/                 # Raw external datasets (not versioned)  
+│   ├── generated/                # Graphs, embeddings, rule tables  
+│   ├── processed/                # Final parquet tables  
+│  
+├── notebooks/  
+│   ├── 01_eda_baseline.ipynb  
+│   ├── 02_models_reco_candidates.ipynb  
+│   ├── 03_models_ranking.ipynb  
+│  
+├── src/  
+│   ├── data_generation/          # Rules, graphs, embeddings  
+│   ├── data_processing/          # Basket & transaction builders  
+│  
+├── basket_ai_dbt/                # Analytics Engineering (dbt + BigQuery)  
+│  
 └── README.md
 
 ---
@@ -205,9 +207,9 @@ Raw transactional data is transformed into two canonical tables:
   - One row per `(basket, item)`
   - Canonical basket–item relationship table
 
-These are rebuilt using:
+These tables are rebuilt using:
 
-src/data_processing/build_baskets_tables.py
+`src/data_processing/build_baskets_tables.py`
 
 This keeps the repository lightweight while preserving full reproducibility.
 
@@ -267,6 +269,115 @@ This project mirrors how modern recommender systems are built in production:
 
 ---
 
+## 9. Analytics Engineering & BI Layer (dbt + BigQuery)
+
+In addition to the recommendation and ranking pipeline, this project includes a
+**production-grade analytics engineering layer** designed to support business
+intelligence, monitoring, and decision-making use cases.
+
+This layer transforms raw transactional data into **clean, tested, BI-ready marts**
+using **BigQuery + dbt**.
+
+### 9.1 Goals of the Analytics Layer
+
+- Establish a **single source of truth** for KPIs
+- Enable fast and reliable BI dashboards
+- Make data quality issues explicit and measurable
+- Separate analytics modeling from ML experimentation
+
+---
+
+### 9.2 Data Warehouse & Tooling
+
+- **Data Warehouse:** Google BigQuery  
+- **Transformation Framework:** dbt  
+- **Modeling Style:** staging → intermediate → marts  
+- **Testing:** dbt generic tests (`not_null`, `unique`)  
+- **Version Control:** Git / GitHub  
+
+---
+
+### 9.3 dbt Model Architecture
+
+#### Staging Layer
+- `stg_baskets`
+- `stg_basket_items`
+
+Responsibilities:
+- Type casting and normalization
+- Explicit missing-value flags
+- Canonical basket–item structure
+
+---
+
+#### Intermediate Layer
+- `int_basket_summary`
+
+Responsibilities:
+- Basket-level aggregation
+- Revenue, item counts, quality metrics
+- Stable inputs for analytical marts
+
+---
+
+#### Mart Layer (BI-Ready Tables)
+
+- **`mrt_daily_kpis`**
+  - Daily basket count, customer count, revenue, AOV
+  - Data quality indicators
+
+- **`mrt_customer_summary`**
+  - Customer frequency & monetary proxies
+  - Recency signals and data quality flags
+
+- **`mrt_top_items_daily`**
+  - Daily Top-20 items by revenue
+  - Ranking and coverage diagnostics
+
+- **`mrt_category_daily_kpis`**
+  - Daily KPIs by product category
+  - Revenue, quantity, basket count
+
+All marts are **fully tested and production-ready**.
+
+---
+
+### 9.4 Data Quality & Testing
+
+- No unexpected nulls in critical dimensions
+- Uniqueness enforced where required
+- All dbt tests pass with zero failures
+
+This ensures analytical reliability for downstream BI.
+
+---
+
+### 9.5 BI & Dashboard Readiness
+
+Final marts are designed for direct consumption by **Looker Studio**:
+
+- Clear grain and aggregation levels
+- Stable date dimensions
+- No hidden joins or implicit logic
+
+Dashboard development is intentionally kept **outside the repository**, reflecting
+real-world separation of concerns.
+
+---
+
+## 10. End-to-End Perspective
+
+This repository intentionally combines:
+
+- Recommendation system design
+- Machine learning & ranking
+- Analytics engineering
+- BI-ready data modeling
+
+Reflecting how modern data teams operate in production environments.
+
+---
+
 ## Author
 
 **Gizem Totkanlı**  
@@ -274,4 +385,3 @@ Data Scientist — Machine Learning / AI
 
 Portfolio Project:  
 **Multi-Signal Basket Recommendation System**
-
