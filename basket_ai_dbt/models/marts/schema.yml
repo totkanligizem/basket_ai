@@ -1,0 +1,49 @@
+version: 2
+
+models:
+  - name: mrt_daily_kpis
+    description: "Günlük KPI özet tablosu (sepet sayısı, müşteri sayısı, ciro, AOV, veri kalitesi oranları)."
+    columns:
+      - name: basket_date
+        tests: [not_null, unique]
+      - name: basket_cnt
+        tests: [not_null]
+      - name: customer_cnt
+        tests: [not_null]
+
+  - name: mrt_customer_summary
+    description: "Müşteri bazlı özet metrikler (frequency, recency proxy, monetary, veri kalitesi oranları)."
+    columns:
+      - name: customer_id
+        tests: [not_null, unique]
+      - name: basket_cnt
+        tests: [not_null]
+      - name: last_basket_date
+        tests: [not_null]
+
+  - name: mrt_top_items_daily
+    description: "Gün bazında ciroya göre Top-20 ürün özeti."
+    columns:
+      - name: basket_date
+        tests: [not_null]
+      - name: item_code
+        tests: [not_null]
+      - name: revenue_rank
+        tests: [not_null]
+      - name: revenue
+        tests: [not_null]
+
+  - name: mrt_category_daily_kpis
+    description: "Gün x kategori (category_name1) kırılımında KPI özetleri: ciro, sepet sayısı, adet, veri kalitesi."
+    columns:
+      - name: basket_date
+        tests: [not_null]
+      - name: category_name1
+        tests: [not_null]
+      - name: revenue
+        tests: [not_null]
+      - name: basket_cnt
+        tests: [not_null]
+      - name: item_rows
+        tests: [not_null]
+        

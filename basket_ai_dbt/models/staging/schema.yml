@@ -1,0 +1,63 @@
+version: 2
+
+models:
+  - name: stg_baskets
+    description: "Raw baskets tablosunun temizlenmiş staging görünümü."
+    columns:
+      - name: basket_id
+        tests:
+          - not_null
+          - unique
+      - name: customer_id
+        tests:
+          - not_null
+      - name: is_customer_id_missing
+        tests:
+          - not_null
+      - name: basket_ts
+        tests:
+          - not_null
+      - name: basket_date
+        tests:
+          - not_null
+      - name: city
+      - name: region
+      - name: gender
+
+  - name: stg_basket_items
+    description: "Raw basket_items tablosunun temizlenmiş staging görünümü."
+    columns:
+      - name: basket_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_baskets')
+                field: basket_id
+      - name: customer_id
+        tests:
+          - not_null
+      - name: is_customer_id_missing
+        tests:
+          - not_null
+      - name: basket_ts
+        tests:
+          - not_null
+      - name: basket_date
+        tests:
+          - not_null
+      - name: item_code
+        tests:
+          - not_null
+      - name: is_item_code_missing
+        tests:
+          - not_null
+      - name: amount
+      - name: price
+      - name: item_total
+      - name: category_name1
+      - name: category_name2
+      - name: category_name3
+      - name: city
+      - name: region
+      - name: gender

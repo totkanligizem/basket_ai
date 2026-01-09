@@ -21,3 +21,15 @@ data/generated/
 
 # Optional: logs
 *.log
+
+# dbt artifacts (do not version)
+basket_ai_dbt/target/
+basket_ai_dbt/dbt_packages/
+basket_ai_dbt/logs/
+basket_ai_dbt/.user.yml
+basket_ai_dbt/.user.yml.lock
+
+# Mac + misc
+**/.DS_Store
+
+

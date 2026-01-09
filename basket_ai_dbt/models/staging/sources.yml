@@ -1,0 +1,16 @@
+version: 2
+
+sources:
+  - name: raw
+    database: market-basket-ai
+    schema: raw
+    tables:
+      - name: baskets
+      - name: basket_items
+      - name: marketsales
+      - name: category_tree
+      - name: category_edges
+      - name: rules
+      - name: neighbors_top20
+      - name: synthetic_customers
+      - name: trends_weekly
