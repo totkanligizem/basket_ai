@@ -13,7 +13,7 @@ diagnosed, and ranked into a stable recommendation system.
 
 ---
 
-## 🧠 System Architecture (High-Level)
+##  System Architecture (High-Level)
 
 Raw Data  
 ├── Transactions  
@@ -87,7 +87,7 @@ models the **system layers** used in production recommender pipelines.
 
 ---
 
-## 📁 Repository Structure
+##  Repository Structure
 
 basket_ai/  
 ├── data/  
