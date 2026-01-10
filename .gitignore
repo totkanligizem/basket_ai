@@ -1,35 +1,89 @@
-# Python
+# =========================================================
+# PYTHON
+# =========================================================
 __pycache__/
-*.pyc
+*.py[cod]
+*.pyo
 .ipynb_checkpoints/
+
+# Virtual environments
 .venv/
+venv/
 .env
+.env.*
 
-# OS
+# =========================================================
+# JUPYTER / NOTEBOOKS
+# =========================================================
+.ipynb_checkpoints/
+**/.ipynb_checkpoints/
+
+# =========================================================
+# OS / EDITORS
+# =========================================================
 .DS_Store
+**/.DS_Store
+Thumbs.db
+.vscode/
+.idea/
 
-# Data (keep only small samples)
+# =========================================================
+# DATA (keep only small samples if needed)
+# =========================================================
 data/external/
 data/processed/
 data/generated/
 
-# Large binaries
-*.xlsx
-*.parquet
-*.bak
+# If you ever want to version small demo files,
+# put them under data/sample/ (not ignored)
+
+# =========================================================
+# LARGE / BINARY FILES
+# =========================================================
 *.csv
+*.parquet
+*.xlsx
+*.xls
+*.bak
+*.zip
+*.tar
+*.gz
 
-# Optional: logs
+# =========================================================
+# LOGS
+# =========================================================
 *.log
+logs/
 
-# dbt artifacts (do not version)
+# =========================================================
+# DBT (DO NOT VERSION ARTIFACTS)
+# =========================================================
 basket_ai_dbt/target/
 basket_ai_dbt/dbt_packages/
 basket_ai_dbt/logs/
+
+# dbt user & state files
 basket_ai_dbt/.user.yml
 basket_ai_dbt/.user.yml.lock
+basket_ai_dbt/.dbt/
+basket_ai_dbt/.profiles.yml
 
-# Mac + misc
-**/.DS_Store
+# =========================================================
+# CACHE / TEMP
+# =========================================================
+.cache/
+.pytest_cache/
+.mypy_cache/
 
+# =========================================================
+# DASH / WEB
+# =========================================================
+dash_app/.venv/
+dash_app/__pycache__/
 
+# =========================================================
+# MISC
+# =========================================================
+*.tmp
+*.swp
+*.swo
