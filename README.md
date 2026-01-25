@@ -90,23 +90,195 @@ Rather than treating recommendation as a single black-box model, this project mo
 ## 3. Repository Structure
 
 basket_ai/
+├── basket_ai_dbt/
+│   ├── analyses/
+│   ├── dbt_project.yml
+│   ├── logs/
+│   │   └── dbt.log
+│   ├── macros/
+│   ├── models/
+│   │   ├── intermediate/
+│   │   │   └── int_basket_summary.sql
+│   │   ├── marts/
+│   │   │   ├── mrt_category_daily_kpis.sql
+│   │   │   ├── mrt_customer_summary.sql
+│   │   │   ├── mrt_daily_kpis.sql
+│   │   │   ├── mrt_top_items_daily.sql
+│   │   │   └── schema.yml
+│   │   └── staging/
+│   │       ├── schema.yml
+│   │       ├── sources.yml
+│   │       ├── stg_basket_items.sql
+│   │       └── stg_baskets.sql
+│   ├── README.md
+│   ├── seeds/
+│   ├── snapshots/
+│   └── target/
+│       ├── compiled/
+│       │   └── basket_ai_dbt/
+│       │       └── models/
+│       │           ├── intermediate/
+│       │           │   └── int_basket_summary.sql
+│       │           ├── marts/
+│       │           │   ├── mrt_category_daily_kpis.sql
+│       │           │   ├── mrt_customer_summary.sql
+│       │           │   ├── mrt_daily_kpis.sql
+│       │           │   ├── mrt_top_items_daily.sql
+│       │           │   └── schema.yml/
+│       │           │       ├── not_null_mrt_category_daily_kpis_basket_cnt.sql
+│       │           │       ├── not_null_mrt_category_daily_kpis_basket_date.sql
+│       │           │       ├── not_null_mrt_category_daily_kpis_category_name1.sql
+│       │           │       ├── not_null_mrt_category_daily_kpis_item_rows.sql
+│       │           │       ├── not_null_mrt_category_daily_kpis_revenue.sql
+│       │           │       ├── not_null_mrt_customer_summary_basket_cnt.sql
+│       │           │       ├── not_null_mrt_customer_summary_customer_id.sql
+│       │           │       ├── not_null_mrt_customer_summary_last_basket_date.sql
+│       │           │       ├── not_null_mrt_daily_kpis_basket_cnt.sql
+│       │           │       ├── not_null_mrt_daily_kpis_basket_date.sql
+│       │           │       ├── not_null_mrt_daily_kpis_customer_cnt.sql
+│       │           │       ├── not_null_mrt_top_items_daily_basket_date.sql
+│       │           │       ├── not_null_mrt_top_items_daily_item_code.sql
+│       │           │       ├── not_null_mrt_top_items_daily_revenue_rank.sql
+│       │           │       ├── not_null_mrt_top_items_daily_revenue.sql
+│       │           │       ├── unique_mrt_customer_summary_customer_id.sql
+│       │           │       └── unique_mrt_daily_kpis_basket_date.sql
+│       │           └── staging/
+│       │               ├── schema.yml/
+│       │               │   ├── not_null_stg_basket_items_basket_date.sql
+│       │               │   ├── not_null_stg_basket_items_basket_id.sql
+│       │               │   ├── not_null_stg_basket_items_basket_ts.sql
+│       │               │   ├── not_null_stg_basket_items_customer_id.sql
+│       │               │   ├── not_null_stg_basket_items_is_customer_id_missing.sql
+│       │               │   ├── not_null_stg_basket_items_is_item_code_missing.sql
+│       │               │   ├── not_null_stg_basket_items_item_code.sql
+│       │               │   ├── not_null_stg_baskets_basket_date.sql
+│       │               │   ├── not_null_stg_baskets_basket_id.sql
+│       │               │   ├── not_null_stg_baskets_basket_ts.sql
+│       │               │   ├── not_null_stg_baskets_customer_id.sql
+│       │               │   ├── not_null_stg_baskets_is_customer_id_missing.sql
+│       │               │   ├── relationships_stg_basket_it...94c9b3b4eab72e65c5e6.sql
+│       │               │   └── unique_stg_baskets_basket_id.sql
+│       │               ├── stg_basket_items.sql
+│       │               └── stg_baskets.sql
+│       ├── graph_summary.json
+│       ├── graph.gpickle
+│       ├── manifest.json
+│       ├── partial_parse.msgpack
+│       ├── perf_info.json
+│       └── run/
+│           └── basket_ai_dbt/
+│               └── models/
+│                   ├── intermediate/
+│                   │   └── int_basket_summary.sql
+│                   ├── marts/
+│                   │   ├── mrt_category_daily_kpis.sql
+│                   │   ├── mrt_customer_summary.sql
+│                   │   ├── mrt_daily_kpis.sql
+│                   │   ├── mrt_top_items_daily.sql
+│                   │   └── schema.yml/
+│                   │       ├── not_null_mrt_category_daily_kpis_basket_cnt.sql
+│                   │       ├── not_null_mrt_category_daily_kpis_basket_date.sql
+│                   │       ├── not_null_mrt_category_daily_kpis_category_name1.sql
+│                   │       ├── not_null_mrt_category_daily_kpis_item_rows.sql
+│                   │       ├── not_null_mrt_category_daily_kpis_revenue.sql
+│                   │       ├── not_null_mrt_customer_summary_basket_cnt.sql
+│                   │       ├── not_null_mrt_customer_summary_customer_id.sql
+│                   │       ├── not_null_mrt_customer_summary_last_basket_date.sql
+│                   │       ├── not_null_mrt_daily_kpis_basket_cnt.sql
+│                   │       ├── not_null_mrt_daily_kpis_basket_date.sql
+│                   │       ├── not_null_mrt_daily_kpis_customer_cnt.sql
+│                   │       ├── not_null_mrt_top_items_daily_basket_date.sql
+│                   │       ├── not_null_mrt_top_items_daily_item_code.sql
+│                   │       ├── not_null_mrt_top_items_daily_revenue_rank.sql
+│                   │       ├── not_null_mrt_top_items_daily_revenue.sql
+│                   │       ├── unique_mrt_customer_summary_customer_id.sql
+│                   │       └── unique_mrt_daily_kpis_basket_date.sql
+│                   └── staging/
+│                       ├── schema.yml/
+│                       │   ├── not_null_stg_basket_items_basket_date.sql
+│                       │   ├── not_null_stg_basket_items_basket_id.sql
+│                       │   ├── not_null_stg_basket_items_basket_ts.sql
+│                       │   ├── not_null_stg_basket_items_customer_id.sql
+│                       │   ├── not_null_stg_basket_items_is_customer_id_missing.sql
+│                       │   ├── not_null_stg_basket_items_is_item_code_missing.sql
+│                       │   ├── not_null_stg_basket_items_item_code.sql
+│                       │   ├── not_null_stg_baskets_basket_date.sql
+│                       │   ├── not_null_stg_baskets_basket_id.sql
+│                       │   ├── not_null_stg_baskets_basket_ts.sql
+│                       │   ├── not_null_stg_baskets_customer_id.sql
+│                       │   ├── not_null_stg_baskets_is_customer_id_missing.sql
+│                       │   ├── relationships_stg_basket_it...94c9b3b4eab72e65c5e6.sql
+│                       │   └── unique_stg_baskets_basket_id.sql
+│                       ├── stg_basket_items.sql
+│                       └── stg_baskets.sql
+├── run_results.json
+├── semantic_manifest.json
+├── tests/
+├── dash_app/
+│   ├── app.py
+│   ├── assets/
+│   │   └── style.css
+│   └── data/
+│       ├── cooc_top_pairs.csv
+│       ├── eda_timeseries.csv
+│       ├── feature_importance.csv
+│       ├── metrics/
+│       │   └── ranking_metrics.csv
+│       ├── rules_top.csv
+│       └── top_categories.csv
 ├── data/
-│   ├── external/          # Raw external datasets (not versioned)
-│   ├── generated/         # Rules, graphs, embeddings
-│   └── processed/         # Final parquet tables
-│
+│   ├── external/
+│   │   ├── reviews/
+│   │   │   ├── e-ticaret_yorumlari_temizlenmis.xlsx
+│   │   │   ├── trendyol.csv
+│   │   │   └── veri_seti_200k.csv
+│   │   └── transactions/
+│   │       ├── MarketSales.xlsx
+│   │       └── SALES10M.BAK
+│   ├── generated/
+│   │   ├── category_trees/
+│   │   │   ├── category_edges.parquet
+│   │   │   ├── category_tree.parquet
+│   │   │   ├── marketsales_category_edges.csv
+│   │   │   └── marketsales_category_tree.csv
+│   │   ├── embeddings/
+│   │   │   ├── product_embeddings.parquet
+│   │   │   ├── product_neighbors_top20.csv
+│   │   │   └── product_neighbors_top20.parquet
+│   │   ├── google_trends/
+│   │   │   ├── trends_weekly.csv
+│   │   │   └── trends_weekly.parquet
+│   │   └── synthetic_customers/
+│   │       ├── synthetic_customers.csv
+│   │       └── synthetic_customers.parquet
+│   └── processed/
+│       ├── baskets/
+│       │   ├── basket_items.parquet
+│       │   ├── baskets.parquet
+│       │   └── rules.parquet
+│       └── transactions/
+│           └── marketsales.parquet
+├── logs/
 ├── notebooks/
 │   ├── 01_eda_baseline.ipynb
 │   ├── 02_models_reco_candidates.ipynb
 │   └── 03_models_ranking.ipynb
-│
-├── src/
-│   ├── data_generation/  # Rules, graphs, embeddings
-│   └── data_processing/  # Basket & transaction builders
-│
-├── basket_ai_dbt/         # Analytics Engineering (dbt + BigQuery)
-├── dash_app/              # Dash-based model diagnostics UI
-└── README.md
+├── README.md
+├── scripts/
+│   └── make_phase2_parquets.py
+└── src/
+    ├── data_generation/
+    │   ├── __pycache__/
+    │   │   └── google_trends_from_marketsales.cpython-312.pyc
+    │   ├── build_category_tree_from_marketsales.py
+    │   ├── build_product_embeddings_item2vec.py
+    │   ├── build_synthetic_customers.py
+    │   ├── google_trends_from_marketsales.py
+    │   └── scrape_trendyol_category_tree.py
+    └── data_processing/
+        ├── __pycache__/
+        │   └── build_baskets_tables.cpython-312.pyc
+        └── build_baskets_tables.py
 
 ---
 
