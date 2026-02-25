@@ -14,6 +14,9 @@ models:
       - name: is_customer_id_missing
         tests:
           - not_null
+          - accepted_values:
+              arguments:
+                values: [true, false]
       - name: basket_ts
         tests:
           - not_null
@@ -40,6 +43,9 @@ models:
       - name: is_customer_id_missing
         tests:
           - not_null
+          - accepted_values:
+              arguments:
+                values: [true, false]
       - name: basket_ts
         tests:
           - not_null
@@ -52,6 +58,9 @@ models:
       - name: is_item_code_missing
         tests:
           - not_null
+          - accepted_values:
+              arguments:
+                values: [true, false]
       - name: amount
       - name: price
       - name: item_total

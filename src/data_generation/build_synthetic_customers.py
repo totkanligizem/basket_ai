@@ -1,45 +1,89 @@
 from __future__ import annotations
 
+import argparse
+import hashlib
 from pathlib import Path
+
 import numpy as np
 import pandas as pd
 
 MARKETSALES_PATH = Path("data/processed/transactions/marketsales.parquet")
 OUT_DIR = Path("data/generated/synthetic_customers")
 OUT_DIR.mkdir(parents=True, exist_ok=True)
-OUT_PATH = OUT_DIR / "synthetic_customers.csv"
+OUT_CSV_PATH = OUT_DIR / "synthetic_customers.csv"
+OUT_PARQUET_PATH = OUT_DIR / "synthetic_customers.parquet"
 
 RNG_SEED = 42
+ID_SALT = "basket_ai_synthetic_v1"
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Build privacy-safe synthetic customer features from transaction history."
+    )
+    parser.add_argument("--source", type=Path, default=MARKETSALES_PATH, help="Input marketsales parquet path.")
+    parser.add_argument("--out-csv", type=Path, default=OUT_CSV_PATH, help="Output CSV path.")
+    parser.add_argument(
+        "--out-parquet",
+        type=Path,
+        default=OUT_PARQUET_PATH,
+        help="Output parquet path.",
+    )
+    parser.add_argument("--seed", type=int, default=RNG_SEED, help="Random seed for synthetic fields.")
+    parser.add_argument(
+        "--id-salt",
+        type=str,
+        default=ID_SALT,
+        help="Salt used for deterministic customer ID anonymization.",
+    )
+    parser.add_argument(
+        "--keep-raw-customer-id",
+        action="store_true",
+        help="Also keep raw customer code column (not recommended for privacy-safe exports).",
+    )
+    return parser.parse_args()
+
 
 def clip01(x: float) -> float:
     return float(max(0.0, min(1.0, x)))
 
+
+def anonymize_customer_id(raw_id: str, salt: str) -> str:
+    text = f"{salt}:{raw_id}".encode("utf-8")
+    return hashlib.sha256(text).hexdigest()[:20]
+
+
 def assign_income_band(monthly_spend: float) -> str:
-    # Harcama arttıkça gelir bandı artar (sentetik)
-    if monthly_spend < 250:   return "low"
-    if monthly_spend < 600:   return "lower_mid"
-    if monthly_spend < 1200:  return "mid"
-    if monthly_spend < 2500:  return "upper_mid"
+    if monthly_spend < 250:
+        return "low"
+    if monthly_spend < 600:
+        return "lower_mid"
+    if monthly_spend < 1200:
+        return "mid"
+    if monthly_spend < 2500:
+        return "upper_mid"
     return "high"
 
+
 def assign_age_band(freq_m: float, spend_m: float, rng: np.random.Generator) -> str:
-    # Daha yüksek frekans + orta harcama genelde aile/çalışan; tamamen sentetik kural
     score = 0.55 * clip01(freq_m / 12) + 0.45 * clip01(spend_m / 1500)
-    noise = rng.normal(0, 0.08)
-    s = score + noise
-    if s < 0.25: return "18-24"
-    if s < 0.50: return "25-34"
-    if s < 0.75: return "35-44"
+    s = score + rng.normal(0, 0.08)
+    if s < 0.25:
+        return "18-24"
+    if s < 0.50:
+        return "25-34"
+    if s < 0.75:
+        return "35-44"
     return "45+"
 
+
 def assign_household_size(age_band: str, rng: np.random.Generator) -> int:
-    # sentetik: yaş arttıkça hane büyüklüğü hafif artabilir
     base = {"18-24": 1.8, "25-34": 2.6, "35-44": 3.2, "45+": 2.8}[age_band]
     val = int(round(max(1, rng.normal(base, 0.7))))
     return min(val, 6)
 
+
 def assign_persona(freq_m: float, spend_m: float, diversity: float) -> str:
-    # Basit ama açıklanabilir persona: davranıştan
     if freq_m >= 8 and spend_m >= 1200:
         return "power_shopper"
     if freq_m >= 8 and spend_m < 1200:
@@ -50,61 +94,66 @@ def assign_persona(freq_m: float, spend_m: float, diversity: float) -> str:
         return "variety_seeker"
     return "routine_shopper"
 
-def main() -> None:
-    rng = np.random.default_rng(RNG_SEED)
 
-    cols = ["CLIENTCODE", "CLIENTNAME", "GENDER", "DATE_", "FICHENO", "LINENETTOTAL", "CATEGORY_NAME2"]
-    df = pd.read_parquet(MARKETSALES_PATH, columns=cols).copy()
+def build_synthetic_customers(
+    source: Path,
+    out_csv: Path,
+    out_parquet: Path,
+    seed: int,
+    id_salt: str,
+    keep_raw_customer_id: bool,
+) -> pd.DataFrame:
+    if not source.exists():
+        raise FileNotFoundError(f"Missing source file: {source}")
 
+    rng = np.random.default_rng(seed)
+
+    cols = ["CLIENTCODE", "GENDER", "DATE_", "FICHENO", "LINENETTOTAL", "CATEGORY_NAME2"]
+    df = pd.read_parquet(source, columns=cols).copy()
     df["DATE_"] = pd.to_datetime(df["DATE_"], errors="coerce")
-    df = df.dropna(subset=["DATE_"])
+    df = df.dropna(subset=["CLIENTCODE", "DATE_", "FICHENO"])
+
+    df["CLIENTCODE"] = df["CLIENTCODE"].astype(str).str.strip()
+    df = df[df["CLIENTCODE"] != ""]
     df["month"] = df["DATE_"].dt.to_period("M").astype(str)
 
-    # müşteri bazında sepet metrikleri
     basket = (
-        df.groupby(["CLIENTCODE", "month"])["FICHENO"]
-          .nunique()
-          .reset_index(name="baskets_in_month")
+        df.groupby(["CLIENTCODE", "month"], as_index=False)["FICHENO"]
+        .nunique()
+        .rename(columns={"FICHENO": "baskets_in_month"})
     )
     spend = (
-        df.groupby(["CLIENTCODE", "month"])["LINENETTOTAL"]
-          .sum()
-          .reset_index(name="spend_in_month")
+        df.groupby(["CLIENTCODE", "month"], as_index=False)["LINENETTOTAL"]
+        .sum()
+        .rename(columns={"LINENETTOTAL": "spend_in_month"})
     )
-    tmp = basket.merge(spend, on=["CLIENTCODE", "month"], how="left")
+    monthly = basket.merge(spend, on=["CLIENTCODE", "month"], how="left")
 
-    # müşteri bazında ortalama aylık frekans/harcama
-    agg = tmp.groupby("CLIENTCODE").agg(
-        avg_baskets_per_month=("baskets_in_month", "mean"),
-        avg_spend_per_month=("spend_in_month", "mean"),
-        active_months=("month", "nunique"),
-    ).reset_index()
+    agg = (
+        monthly.groupby("CLIENTCODE", as_index=False)
+        .agg(
+            avg_baskets_per_month=("baskets_in_month", "mean"),
+            avg_spend_per_month=("spend_in_month", "mean"),
+            active_months=("month", "nunique"),
+        )
+    )
 
-    # kategori çeşitliliği (unique category2 / total category2)
     cat_div = (
         df.groupby("CLIENTCODE")["CATEGORY_NAME2"]
-          .agg(total=("count"), uniq=("nunique"))
-          .reset_index()
+        .agg(total=("count"), uniq=("nunique"))
+        .reset_index()
     )
     cat_div["category_diversity"] = (cat_div["uniq"] / cat_div["total"]).fillna(0.0)
     agg = agg.merge(cat_div[["CLIENTCODE", "category_diversity"]], on="CLIENTCODE", how="left")
 
-    # gender: en sık görüleni al
     gender = (
         df.dropna(subset=["GENDER"])
-          .groupby("CLIENTCODE")["GENDER"]
-          .agg(lambda x: x.value_counts().index[0])
-          .reset_index(name="gender")
+        .groupby("CLIENTCODE")["GENDER"]
+        .agg(lambda x: x.value_counts().index[0])
+        .reset_index(name="gender")
     )
-    names = (
-        df.groupby("CLIENTCODE")[["CLIENTNAME"]]
-          .agg(lambda x: x.dropna().iloc[0] if len(x.dropna()) else None)
-          .reset_index()
-    )
+    out = agg.merge(gender, on="CLIENTCODE", how="left")
 
-    out = agg.merge(gender, on="CLIENTCODE", how="left").merge(names, on="CLIENTCODE", how="left")
-
-    # sentetik alanlar
     out["income_band"] = out["avg_spend_per_month"].map(assign_income_band)
     out["age_band"] = [
         assign_age_band(f, s, rng)
@@ -120,16 +169,53 @@ def main() -> None:
         )
     ]
 
-    # etik etiket
+    out["customer_id_raw"] = out["CLIENTCODE"]
+    out["customer_id"] = out["customer_id_raw"].map(lambda x: anonymize_customer_id(str(x), id_salt))
     out["is_synthetic_profile"] = True
-    out["synthetic_profile_note"] = "Derived from transactional behavior; demographics are synthetic for modeling/visualization."
+    out["synthetic_profile_note"] = (
+        "Generated from transactional behavior. IDs are anonymized and demographic attributes are synthetic."
+    )
 
-    # düzen
-    out = out.rename(columns={"CLIENTCODE": "customer_id", "CLIENTNAME": "customer_name"})
-    out = out.sort_values("customer_id")
+    columns = [
+        "customer_id",
+        "avg_baskets_per_month",
+        "avg_spend_per_month",
+        "active_months",
+        "category_diversity",
+        "gender",
+        "income_band",
+        "age_band",
+        "household_size",
+        "persona",
+        "is_synthetic_profile",
+        "synthetic_profile_note",
+    ]
+    if keep_raw_customer_id:
+        columns.append("customer_id_raw")
 
-    out.to_csv(OUT_PATH, index=False)
-    print(f"[done] wrote: {OUT_PATH} rows={len(out)} cols={out.shape[1]}")
+    out = out[columns].sort_values("customer_id").reset_index(drop=True)
+
+    out_csv.parent.mkdir(parents=True, exist_ok=True)
+    out_parquet.parent.mkdir(parents=True, exist_ok=True)
+    out.to_csv(out_csv, index=False)
+    out.to_parquet(out_parquet, index=False)
+
+    return out
+
+
+def main() -> None:
+    args = parse_args()
+    out = build_synthetic_customers(
+        source=args.source,
+        out_csv=args.out_csv,
+        out_parquet=args.out_parquet,
+        seed=args.seed,
+        id_salt=args.id_salt,
+        keep_raw_customer_id=args.keep_raw_customer_id,
+    )
+    print(f"[done] wrote: {args.out_csv} rows={len(out)} cols={out.shape[1]}")
+    print(f"[done] wrote: {args.out_parquet}")
+
 
 if __name__ == "__main__":
     main()

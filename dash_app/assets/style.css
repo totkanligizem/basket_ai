@@ -1,156 +1,143 @@
-/* =========================================================
-   GLOBAL (Dark Glass UI)
-   ========================================================= */
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap");
 
 :root {
-  --bg: #0b1020;
-  --panel: rgba(255, 255, 255, 0.06);
-  --panel-2: rgba(255, 255, 255, 0.035);
-  --border: rgba(255, 255, 255, 0.10);
-  --border-2: rgba(255, 255, 255, 0.07);
-  --text: rgba(230, 232, 239, 0.96);
-  --text-dim: rgba(230, 232, 239, 0.80);
-  --muted: rgba(230, 232, 239, 0.62);
-  --shadow: 0 22px 60px rgba(0, 0, 0, 0.38);
+  --bg: #f4f7fb;
+  --ink: #0f172a;
+  --ink-soft: #334155;
+  --muted: #64748b;
+  --card: rgba(255, 255, 255, 0.84);
+  --border: rgba(15, 23, 42, 0.12);
+  --line: rgba(15, 23, 42, 0.08);
+  --shadow: 0 22px 46px rgba(15, 23, 42, 0.12);
+  --brand: #0b6efd;
+  --accent: #0ea5a4;
+  --warm: #f59e0b;
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
-html, body {
-  height: 100%;
+html,
+body {
+  min-height: 100%;
 }
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI",
-    Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;
-  color: var(--text);
+  color: var(--ink);
+  font-family: "IBM Plex Sans", "Segoe UI", Arial, sans-serif;
   background:
-    radial-gradient(circle at 18% 18%, rgba(120, 140, 255, 0.18), transparent 38%),
-    radial-gradient(circle at 82% 10%, rgba(180, 60, 120, 0.16), transparent 40%),
-    radial-gradient(circle at 60% 90%, rgba(90, 200, 250, 0.10), transparent 45%),
-    var(--bg);
+    radial-gradient(circle at 10% -5%, rgba(11, 110, 253, 0.18), transparent 35%),
+    radial-gradient(circle at 85% 0%, rgba(14, 165, 164, 0.14), transparent 30%),
+    linear-gradient(170deg, #f8fbff 0%, #eef4fb 100%);
 }
 
-/* =========================================================
-   PAGE LAYOUT
-   ========================================================= */
-
 .page {
-  max-width: 1400px;
+  max-width: 1460px;
   margin: 0 auto;
-  padding: 24px 28px 36px;
+  padding: 28px;
 }
 
 .header {
   display: flex;
   justify-content: space-between;
+  gap: 24px;
   align-items: flex-start;
-  gap: 22px;
 }
 
 .eyebrow {
   display: inline-flex;
   align-items: center;
   font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.10em;
+  font-weight: 700;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(230, 232, 239, 0.70);
+  color: var(--ink-soft);
 }
 
 .header h1 {
   margin: 8px 0 0;
-  font-size: 32px;
-  font-weight: 900;
+  font-family: "Space Grotesk", "Segoe UI", sans-serif;
+  font-size: clamp(28px, 3vw, 40px);
+  line-height: 1.1;
   letter-spacing: -0.03em;
 }
 
 .subtitle {
-  margin-top: 10px;
-  font-size: 14px;
-  line-height: 1.45;
-  color: var(--text-dim);
+  margin-top: 12px;
+  max-width: 760px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink-soft);
 }
 
 .controls {
-  min-width: 280px;
+  width: 320px;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  backdrop-filter: blur(8px);
+  box-shadow: var(--shadow);
 }
 
 .control-label {
   font-size: 12px;
-  margin-bottom: 8px;
+  font-weight: 600;
   color: var(--muted);
+  margin-bottom: 8px;
 }
 
-/* =========================================================
-   DROPDOWN
-   ========================================================= */
+.control-label-spaced {
+  margin-top: 14px;
+}
 
 .dropdown .Select-control {
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 14px;
+  border-radius: 12px;
   border: 1px solid var(--border);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
-  backdrop-filter: blur(12px);
+  box-shadow: none;
+  background: #ffffff;
+  min-height: 42px;
+}
+
+.dropdown .Select-value-label,
+.dropdown .Select-placeholder {
+  color: var(--ink) !important;
+  font-weight: 600;
 }
 
 .dropdown .Select-menu-outer {
-  background: rgba(17, 22, 42, 0.98);
-  border-radius: 14px;
+  border-radius: 12px;
   border: 1px solid var(--border);
-  backdrop-filter: blur(12px);
-  overflow: hidden;
 }
 
-.dropdown .Select-option {
-  padding: 10px 14px;
-}
-
-.dropdown .Select-option.is-selected,
 .dropdown .Select-option.is-focused {
-  background: rgba(120, 140, 255, 0.22);
+  background: rgba(11, 110, 253, 0.1);
 }
 
-/* selected value */
-.dropdown .Select-value-label,
-.dropdown .Select-value,
-.dropdown .Select-placeholder {
-  color: #f2f2f2 !important;
-  font-weight: 800;
+.status-line {
+  margin: 16px 0 18px;
+  padding: 11px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--ink-soft);
+  font-size: 12px;
+  line-height: 1.4;
 }
-
-/* =========================================================
-   TOP BAR
-   ========================================================= */
-
-.topbar {
-  margin: 16px 0 24px;
-}
-
-.pill {
-  display: inline-block;
-  padding: 10px 14px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border);
-  font-size: 13px;
-  color: rgba(230, 232, 239, 0.92);
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.18);
-  backdrop-filter: blur(12px);
-}
-
-/* =========================================================
-   CONTENT LAYOUT
-   ========================================================= */
 
 .content {
-  margin-top: 8px;
+  margin-top: 6px;
 }
 
-/* locks overall content height to reduce view-switch “jumping” */
 .content-lock {
-  min-height: 920px;
+  min-height: 980px;
+}
+
+.stack {
+  display: grid;
+  gap: 18px;
 }
 
 .grid {
@@ -159,158 +146,85 @@ body {
   gap: 18px;
 }
 
-.stack {
-  display: grid;
-  gap: 18px;
-}
-
-.footer {
-  margin-top: 22px;
-  padding: 12px 6px 0;
-  font-size: 12px;
-  color: rgba(230, 232, 239, 0.56);
-}
-
-/* =========================================================
-   CARDS (Glass)
-   ========================================================= */
-
 .card {
-  position: relative;
-  background: linear-gradient(180deg, rgba(255,255,255,0.075), rgba(255,255,255,0.025));
   border: 1px solid var(--border);
+  background: var(--card);
   border-radius: 18px;
-  padding: 18px 20px 20px;
+  padding: 18px;
   box-shadow: var(--shadow);
-  backdrop-filter: blur(14px);
-  overflow: hidden;
-}
-
-.card::before {
-  content: "";
-  position: absolute;
-  inset: -2px;
-  border-radius: 20px;
-  background:
-    radial-gradient(circle at 10% 10%, rgba(120, 140, 255, 0.22), transparent 40%),
-    radial-gradient(circle at 90% 15%, rgba(180, 60, 120, 0.18), transparent 42%);
-  opacity: 0.35;
-  pointer-events: none;
-}
-
-.card::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 18px;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
-  pointer-events: none;
-}
-
-.card-title,
-.card-title-mini,
-.card-body {
-  position: relative;
+  backdrop-filter: blur(10px);
 }
 
 .card-title {
-  font-size: 16px;
-  font-weight: 900;
+  font-family: "Space Grotesk", "Segoe UI", sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   margin-bottom: 12px;
-}
-
-.card-title-mini {
-  font-size: 14px;
-  font-weight: 900;
-  margin-bottom: 6px;
 }
 
 .card-body {
   font-size: 14px;
-}
-
-/* =========================================================
-   TEXT BLOCKS
-   ========================================================= */
-
-.p {
-  line-height: 1.65;
-  color: rgba(230, 232, 239, 0.92);
-}
-
-.bullets {
-  margin-top: 10px;
-  padding-left: 18px;
-  color: rgba(230, 232, 239, 0.90);
-}
-
-.bullets li {
-  margin-bottom: 7px;
-  line-height: 1.55;
 }
 
 .note {
   margin-top: 10px;
+  color: var(--muted);
   font-size: 12px;
-  line-height: 1.55;
-  color: rgba(230, 232, 239, 0.66);
+  line-height: 1.45;
 }
 
-/* =========================================================
-   KPI CARDS
-   ========================================================= */
+.artifact-line {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
 
 .kpi-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
   gap: 12px;
-  margin-top: 12px;
+  grid-template-columns: 1fr 1fr;
 }
 
 .kpi {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border-2);
   border-radius: 14px;
-  padding: 14px;
-  backdrop-filter: blur(10px);
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.92);
+  padding: 13px;
 }
 
 .kpi-label {
-  color: rgba(230, 232, 239, 0.74);
   font-size: 12px;
-  font-weight: 800;
+  color: var(--muted);
+  font-weight: 600;
 }
 
 .kpi-value {
-  font-size: 32px;
-  font-weight: 950;
-  margin-top: 6px;
+  margin-top: 5px;
+  font-size: 30px;
+  font-family: "Space Grotesk", "Segoe UI", sans-serif;
+  font-weight: 700;
   letter-spacing: -0.03em;
-  text-shadow: 0 10px 20px rgba(0,0,0,0.25);
 }
 
 .kpi-sub {
-  color: rgba(230, 232, 239, 0.72);
-  font-size: 12px;
   margin-top: 4px;
-}
-
-.kpi-foot {
-  color: rgba(230, 232, 239, 0.66);
+  color: var(--ink-soft);
   font-size: 12px;
-  margin-top: 10px;
-  line-height: 1.5;
 }
 
-/* =========================================================
-   TABLES
-   ========================================================= */
+.kpi-delta {
+  margin-top: 7px;
+  color: var(--brand);
+  font-size: 12px;
+  font-weight: 600;
+}
 
 .table-wrap {
-  border-radius: 14px;
+  border-radius: 12px;
   overflow: hidden;
-  border: 1px solid rgba(255,255,255,0.08);
-  background: rgba(0,0,0,0.10);
+  border: 1px solid var(--line);
+  background: #ffffff;
 }
 
 .table {
@@ -320,70 +234,77 @@ body {
 
 .table th {
   text-align: left;
+  padding: 10px 11px;
   font-size: 12px;
-  font-weight: 900;
-  color: rgba(230, 232, 239, 0.74);
-  padding: 10px 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.09);
-  background: rgba(0,0,0,0.18);
+  color: var(--ink-soft);
+  border-bottom: 1px solid var(--line);
+  background: rgba(15, 23, 42, 0.04);
 }
 
 .table td {
-  padding: 10px 12px;
+  padding: 9px 11px;
   font-size: 13px;
-  color: rgba(230, 232, 239, 0.92);
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-}
-
-.table tr:hover td {
-  background: rgba(120, 140, 255, 0.06);
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
 }
 
 .table tr:last-child td {
   border-bottom: none;
 }
 
-.table-note {
-  color: rgba(230, 232, 239, 0.60);
-  margin-top: 8px;
-  font-size: 12px;
+.table tr:hover td {
+  background: rgba(11, 110, 253, 0.06);
 }
 
-/* =========================================================
-   GRAPHS (stable containers)
-   ========================================================= */
+.table-note {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
 
 .graph {
   width: 100%;
 }
 
-/* Give plot containers a stable "card-in-card" feel */
-.graph .js-plotly-plot {
-  border-radius: 16px;
-  overflow: hidden;
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.07);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-}
-
-/* Prevent graphs from collapsing during load */
 .graph .js-plotly-plot,
 .graph .plot-container,
 .graph .svg-container {
-  min-height: 360px;
+  min-height: 340px;
 }
 
-/* =========================================================
-   RESPONSIVE
-   ========================================================= */
-
-@media (max-width: 1100px) {
-  .grid { grid-template-columns: 1fr; }
-  .content-lock { min-height: 1200px; }
+.graph .js-plotly-plot {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: #ffffff;
 }
 
-@media (max-width: 720px) {
-  .header { flex-direction: column; align-items: stretch; }
-  .controls { width: 100%; }
-  .kpi-grid { grid-template-columns: 1fr; }
+.footer {
+  margin-top: 22px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+@media (max-width: 1140px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .content-lock {
+    min-height: 1260px;
+  }
+}
+
+@media (max-width: 760px) {
+  .header {
+    flex-direction: column;
+  }
+
+  .controls {
+    width: 100%;
+  }
+
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
 }

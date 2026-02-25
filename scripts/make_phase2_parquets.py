@@ -37,6 +37,10 @@ def main():
         src_p = Path(src)
         dst_p = Path(dst)
 
+        if dst_p.exists():
+            print(f"ℹ️ EXISTS: {dst_p} (skip)")
+            continue
+
         if not src_p.exists():
             print(f"❌ MISSING: {src_p}")
             continue

@@ -1,0 +1,14 @@
+pandas>=2.2,<3
+numpy>=1.26,<3
+pyarrow>=14,<20
+scikit-learn>=1.4,<2
+lightgbm>=4.0,<5
+xgboost>=2.0,<3
+mlxtend>=0.23,<1
+gensim>=4.3,<5
+pytrends>=4.9,<5
+requests>=2.31,<3
+beautifulsoup4>=4.12,<5
+lxml>=5.0,<6
+dash>=3.0,<4
+plotly>=5.20,<7

@@ -1,321 +1,373 @@
-# basket_ai — Multi-Signal Basket Recommendation System  
-*(Candidate Generation → Learning-to-Rank)*
+# basket_ai
+Production-style **basket recommendation system** with:
+- multi-signal candidate generation
+- leakage-safe Learning-to-Rank evaluation
+- dashboard artifacts and executive monitoring
+- dbt analytics layer for BI-ready marts
 
-A production-style, end-to-end **basket-based recommendation pipeline** covering the full  
-**pre-ranking → ranking → online inference simulation** lifecycle.
-
-This project is intentionally designed to reflect **real-world recommender system architecture**,  
-where system performance is driven not by a single sophisticated model, but by the **quality, diversity,  
-and robustness of candidate generation**, followed by a **lightweight yet effective ranking stage**.
-
-The repository demonstrates how multiple weak-to-moderate signals can be combined, diagnosed,  
-and ranked into a stable, interpretable, and extensible recommendation system.
+This repository is designed to mirror a real recommendation stack where ranking quality depends first on candidate quality, then on robust model ordering.
 
 ---
 
-## System Architecture (High-Level)
-
-Raw Data
-├── Transactions
-├── Product metadata
-├── Category hierarchy
-↓
-Feature & Graph Construction
-├── Basket co-occurrence graph
-├── Association rules
-├── Category tree
-├── Item embeddings (Item2Vec-style)
-↓
-Candidate Generation (Multi-Signal)
-├── Rules-based candidates
-├── Co-occurrence candidates
-├── Category expansion
-├── Embedding neighbors
-↓
-Candidate Pool Diagnostics
-├── Coverage & sparsity
-├── Source diversity
-├── Recall@K
-↓
-Learning-to-Rank (LightGBM LambdaRank)
-↓
-Offline Evaluation
-↓
-Online Inference Simulation (Mock Serving)
+## Table of Contents
+1. [Project Scope](#project-scope)
+2. [Architecture](#architecture)
+3. [Repository Structure](#repository-structure)
+4. [Quick Start](#quick-start)
+5. [One-Command Production Pipeline](#one-command-production-pipeline)
+6. [Detailed Pipeline Steps](#detailed-pipeline-steps)
+7. [Data and Privacy](#data-and-privacy)
+8. [Leakage-Safe Evaluation Design](#leakage-safe-evaluation-design)
+9. [Dashboard](#dashboard)
+10. [dbt Layer](#dbt-layer)
+11. [Notebooks Policy](#notebooks-policy)
+12. [Outputs](#outputs)
+13. [Troubleshooting](#troubleshooting)
+14. [Roadmap](#roadmap)
 
 ---
 
-## 1. Motivation & Problem Framing
+## Project Scope
+`basket_ai` solves a market-basket recommendation workflow end-to-end:
 
-In large-scale recommender systems, overall performance is often constrained **before** any  
-advanced model is applied.
+1. Build canonical basket tables from transaction-level sales data.
+2. Generate recommendation signals:
+  - association rules
+  - co-occurrence graph
+  - category expansion
+  - embedding neighbors (Item2Vec-style)
+  - optional trends and external category scrape
+3. Train and evaluate a ranking model.
+4. Export standardized artifacts for a Dash monitoring app.
+5. Model BI-facing marts with dbt.
 
-If relevant items are **not surfaced during candidate generation**, no downstream ranking model  
-can recover them.
-
-This project explicitly addresses the following questions:
-
-- Can we reliably generate **non-empty and sufficiently rich candidate pools**?
-- Do heterogeneous recommendation signals reinforce each other in practice?
-- How stable is candidate generation across basket sizes and sparsity regimes?
-- Does a simple learning-to-rank model outperform heuristic blending?
-- Can the system operate under **online, low-latency serving constraints**?
-
-Rather than treating recommendation as a single black-box model, this project models the  
-**system layers** commonly used in production recommender pipelines.
-
----
-
-## 2. Design Principles
-
-### Separation of Concerns
-- Candidate generation, ranking, and serving are treated as **independent layers**
-- Each layer is validated before advancing to the next
-
-### Reproducibility Over Convenience
-- Large raw datasets are excluded from version control
-- All processed tables and artifacts are **fully regenerable**
-- Deterministic random seeds are used where applicable
-
-### Multi-Signal Redundancy
-- No single signal is assumed to be sufficient
-- Agreement across signals acts as an implicit confidence signal
-
-### Offline Validation First
-- Candidate quality is evaluated **prior to ranking**
-- Emphasis is placed on recall, coverage, and robustness — not accuracy alone
+Core design goals:
+- reproducibility
+- operational clarity
+- privacy-safe synthetic enrichment
+- explicit separation of exploration vs production code paths
 
 ---
 
-## 3. Repository Structure
+## Architecture
+```text
+Raw Transactions
+  -> Canonical Tables (baskets, basket_items)
+  -> Signal Builders (rules / cooc / category / embeddings)
+  -> Candidate Generator
+  -> Ranker (LightGBM LambdaRank, leakage-safe split)
+  -> Evaluation Artifacts (NDCG@K, HitRate@K, feature importance)
+  -> Dash Dashboard + dbt marts
+```
 
+---
+
+## Repository Structure
+```text
 basket_ai/
-├── README.md
-├── notebooks/                 # EDA → candidate generation → ranking akışı
-│   ├── 01_eda_baseline.ipynb
-│   ├── 02_models_reco_candidates.ipynb
-│   └── 03_models_ranking.ipynb
-├── src/                       # Veri üretim + işleme pipeline'ı (python)
-│   ├── data_generation/
-│   │   ├── build_category_tree_from_marketsales.py
-│   │   ├── build_product_embeddings_item2vec.py
-│   │   ├── build_synthetic_customers.py
-│   │   ├── google_trends_from_marketsales.py
-│   │   └── scrape_trendyol_category_tree.py
-│   └── data_processing/
-│       └── build_baskets_tables.py
-├── scripts/                   # yardımcı otomasyonlar
+├── src/
+│   ├── data_processing/
+│   │   └── build_baskets_tables.py
+│   └── data_generation/
+│       ├── build_synthetic_customers.py
+│       ├── build_product_embeddings_item2vec.py
+│       ├── build_category_tree_from_marketsales.py
+│       ├── google_trends_from_marketsales.py
+│       └── scrape_trendyol_category_tree.py
+├── scripts/
+│   ├── run_production_pipeline.sh
+│   ├── train_ranker_leakage_safe.py
+│   ├── export_dashboard_artifacts.py
 │   └── make_phase2_parquets.py
-├── data/
-│   ├── external/              # ham/harici dosyalar (reviews, transactions)
-│   ├── processed/             # normalize edilmiş parquet'ler (baskets, transactions)
-│   └── generated/             # türetilmiş çıktılar (embeddings, trends, category tree, synthetic)
-├── dash_app/                  # demo dashboard (Dash)
+├── dash_app/
 │   ├── app.py
 │   ├── assets/style.css
-│   └── data/                  # app'in okuduğu özet csv'ler + metrikler
-├── basket_ai_dbt/             # dbt projesi (staging → intermediate → marts)
-│   ├── dbt_project.yml
-│   ├── models/
-│   │   ├── staging/           # stg_* modelleri + sources.yml/schema.yml
-│   │   ├── intermediate/      # int_* (örn. int_basket_summary)
-│   │   └── marts/             # mrt_* KPI/summary tabloları
-│   └── target/                # dbt build artifacts (genelde repoya koymak şart değil)
-├── tests/                     # test dosyaları / fixture'lar
-├── logs/                      # çalışma log'ları
-├── run_results.json
-└── semantic_manifest.json
+│   └── data/...
+├── basket_ai_dbt/
+│   └── models/{staging,intermediate,marts}
+├── notebooks/
+│   ├── 01_eda_baseline.ipynb
+│   ├── 02_models_reco_candidates.ipynb
+│   ├── 03_models_ranking.ipynb
+│   └── README.md
+├── data/
+│   ├── external/
+│   ├── processed/
+│   └── generated/
+├── requirements.txt
+├── Makefile
+└── README.md
+```
 
 ---
 
-## 4. Notebook Overview
+## Quick Start
 
-### 4.1 `01_eda_baseline.ipynb` — Data Understanding & Framing
-- Exploratory analysis of basket and item distributions
-- Basket size and sparsity diagnostics
-- Validation of modeling assumptions
-- Establishes design constraints for candidate generation
+### Prerequisites
+- Python `3.12+`
+- `pip`
+- GNU `make` (for one-command targets)
 
----
+Optional:
+- dbt + BigQuery profile for analytics layer
 
-### 4.2 `02_models_reco_candidates.ipynb` — Multi-Signal Candidate Generation
+### Install dependencies
+```bash
+pip install -r requirements.txt
+```
 
-Independent candidate generators are implemented without knowledge of each other.
-
-**Implemented signals:**
-- Association rules (Apriori-style; filtered by support, confidence, and lift)
-- Basket co-occurrence (frequency-weighted, high-recall)
-- Category-level expansion (hierarchy-driven fallback)
-- Item embedding neighbors (Item2Vec-style)
-
-Candidates are unioned into a single pool while tracking:
-- blended score
-- number of supporting signals
-- exact source combinations
-
-This enables robustness analysis and signal ablation.
+### See available make targets
+```bash
+make help
+```
 
 ---
 
-### 4.3 `03_models_ranking.ipynb` — Learning-to-Rank & Online Simulation
+## One-Command Production Pipeline
 
-**Learning-to-Rank**
-- LightGBM LambdaRank
-- Basket-level grouping
-- One held-out item per basket used as the positive label
-- Features: `blended_score`, `n_sources`, `basket_size`
+Full run:
+```bash
+make pipeline
+```
 
-**Evaluation**
-- NDCG@K
-- HitRate@K
-- Baseline vs ranker comparison
-- Feature importance inspection
+Fast run (skip embedding retrain):
+```bash
+make pipeline-fast
+```
 
-**Online Inference Simulation**
-1. Candidate generation from live basket context
-2. Serving-safe feature construction
-3. Ranker scoring
-4. Top-N recommendation output
-5. JSON-compatible response serialization
+What `make pipeline` orchestrates:
+1. Canonical table build
+2. Synthetic customer generation (anonymized)
+3. Embedding generation
+4. Category tree build
+5. Leakage-safe ranker training
+6. Dashboard artifact export
 
----
+The orchestrator is:
+- [scripts/run_production_pipeline.sh](scripts/run_production_pipeline.sh)
 
-## 5. Data Sources & Dataset Documentation
-
-### Core Data Sources
-- **Kaggle public e-commerce datasets** for transactional and basket behavior
-- **Synthetic data generation** for privacy-safe customer and behavioral enrichment
-- **Domain research** reflecting Turkish e-commerce behavior
-- **Design-level external signals** for demand and trend enrichment
-
-> Platforms such as Trendyol, Migros, and Getir are **not accessed via API**,  
-> but are used as **behavioral reference points** to guide realistic system design.
+Supported script flags:
+- `--skip-embeddings`
+- `--skip-training`
+- `--skip-export`
+- `--with-trends`
+- `--with-trendyol`
 
 ---
 
-### Canonical Transaction Tables
+## Detailed Pipeline Steps
 
-**baskets.parquet**
-- basket_id (STRING)
-- customer_id (STRING)
-- order_date (DATE)
-- channel (STRING)
-- basket_size (INT)
+### 1) Build canonical basket tables
+```bash
+python src/data_processing/build_baskets_tables.py
+```
+Input:
+- `data/processed/transactions/marketsales.parquet`
 
-**basket_items.parquet**
-- basket_id (STRING)
-- item_id (STRING)
-- quantity (INT)
-- price (FLOAT)
-- category (STRING)
+Outputs:
+- `data/processed/baskets/basket_items.parquet`
+- `data/processed/baskets/baskets.parquet`
 
-These tables are rebuilt via:
+### 2) Generate synthetic customer features (privacy-safe)
+```bash
+python src/data_generation/build_synthetic_customers.py
+```
+Outputs:
+- `data/generated/synthetic_customers/synthetic_customers.csv`
+- `data/generated/synthetic_customers/synthetic_customers.parquet`
 
-src/data_processing/build_baskets_tables.py
+### 3) Build embeddings and neighbors
+```bash
+python src/data_generation/build_product_embeddings_item2vec.py --max-anchor-items 0 --max-neighbors-per-item 20
+```
+Outputs:
+- `data/generated/embeddings/product_embeddings.parquet`
+- `data/generated/embeddings/product_neighbors_top20.csv`
 
----
+### 4) Build category tree
+```bash
+python src/data_generation/build_category_tree_from_marketsales.py
+```
+Outputs:
+- `data/generated/category_trees/marketsales_category_tree.csv`
+- `data/generated/category_trees/marketsales_category_edges.csv`
 
-### Synthetic Enrichment Tables
+### 5) Train ranker with leakage-safe setup
+```bash
+python scripts/train_ranker_leakage_safe.py
+```
+Outputs:
+- `dash_app/data/metrics/ranking_metrics.csv`
+- `dash_app/data/feature_importance.csv`
+- `dash_app/data/metrics/valid_predictions.csv`
+- `dash_app/data/rules_top.csv`
+- `dash_app/data/cooc_top_pairs.csv`
 
-**synthetic_customers**
-- customer_id
-- age_group
-- gender
-- income_segment
-- lifecycle_stage
-- price_sensitivity
+### 6) Export dashboard EDA/category artifacts
+```bash
+python scripts/export_dashboard_artifacts.py
+```
+Outputs:
+- `dash_app/data/eda_timeseries.csv`
+- `dash_app/data/top_categories.csv`
+- `dash_app/data/rules_top.csv`
+- `dash_app/data/cooc_top_pairs.csv`
 
-**synthetic_behavior_features**
-- avg_basket_size
-- avg_basket_value
-- repeat_purchase_rate
-- category_diversity_score
-
----
-
-### Model & Evaluation Outputs
-- ranking_metrics.csv (model, k, ndcg, hit_rate)
-- feature_importance.csv (feature, importance)
-- rules_top.csv
-- cooc_top_pairs.csv
-
----
-
-## 6. Analytics Engineering Layer (dbt + BigQuery)
-
-The project includes a **production-grade analytics layer** supporting BI and monitoring use cases.
-
-- **Modeling pattern:** staging → intermediate → marts  
-- **Warehouse:** Google BigQuery  
-- **Transformations:** dbt  
-- **Testing:** `not_null`, `unique`  
-
-### Staging
-- stg_baskets
-- stg_basket_items
-
-### Intermediate
-- int_basket_summary
-
-### Marts (BI-ready)
-- mrt_daily_kpis
-- mrt_customer_summary
-- mrt_top_items_daily
-- mrt_category_daily_kpis
-
-All marts are tested, documented, and Looker Studio–ready.
+### 7) Launch dashboard
+```bash
+make dashboard
+```
+or
+```bash
+python dash_app/app.py
+```
 
 ---
 
-## 7. Evaluation Methodology
+## Data and Privacy
 
-- Candidate pool coverage and sparsity analysis
-- Recall@K using held-out basket items
-- Ranking quality via NDCG@K and HitRate@K
-- Baseline versus ranker comparison
+Canonical tables:
+- `baskets.parquet`
+- `basket_items.parquet`
 
----
+Synthetic enrichment:
+- `synthetic_customers` output is **anonymized** (`customer_id` hashed with salt).
+- Raw customer names are not exported in synthetic outputs.
 
-## 8. Key Findings
-
-- Candidate pools are non-empty for nearly all baskets
-- Multi-signal blending outperforms single-signal approaches
-- Co-occurrence and rules dominate recall
-- Embeddings add semantic diversity
-- Category expansion stabilizes sparse baskets
-- LightGBM ranker improves ordering over heuristics
-- Simple features already yield meaningful gains
+Important:
+- Large raw/processed/generated data files are excluded from git by `.gitignore`.
+- Rebuild artifacts via scripts instead of committing data binaries.
 
 ---
 
-## 9. Why This Architecture Matters
+## Leakage-Safe Evaluation Design
 
-This project mirrors how modern recommender systems are built in production:
-- Candidate generation is explicitly modeled and validated
-- Ranking is treated as a refinement layer, not a miracle fix
-- Online constraints are considered from the start
-- The system remains interpretable, debuggable, and extensible
+Production training is not notebook-random split based.
+
+`scripts/train_ranker_leakage_safe.py` applies:
+1. Time-based train/validation split by basket date.
+2. Signal indices built from **train history only**.
+3. Holdout generation on each split separately.
+4. Query-grouped ranking metrics (`NDCG@K`, `HitRate@K`).
+5. Baseline comparison (`blended_score`) vs LightGBM ranker.
+
+This avoids optimistic metrics caused by signal leakage from future baskets.
 
 ---
 
-## 10. Future Extensions
+## Dashboard
 
-- Personalized ranking features
-- User embeddings
-- Feature store integration
-- FastAPI deployment
-- Real-time monitoring dashboards
-- A/B testing framework
+Dashboard app:
+- [dash_app/app.py](dash_app/app.py)
+- [dash_app/assets/style.css](dash_app/assets/style.css)
+
+Current dashboard capabilities:
+- model selector and baseline delta panels
+- ranking curves by K
+- feature importance view
+- EDA trend cards (volume, revenue, AOV)
+- candidate signal summaries and table previews
+- robust placeholders for missing artifacts
+
+---
+
+## dbt Layer
+
+dbt project:
+- [basket_ai_dbt](basket_ai_dbt)
+
+Model flow:
+- `staging` -> `intermediate` -> `marts`
+
+Key models:
+- staging: `stg_baskets`, `stg_basket_items`
+- intermediate: `int_basket_summary`
+- marts:
+  - `mrt_daily_kpis`
+  - `mrt_customer_summary`
+  - `mrt_top_items_daily`
+  - `mrt_category_daily_kpis`
+
+Staging models include defensive date parsing for epoch/timestamp variants.
+
+---
+
+## Notebooks Policy
+
+Notebooks are **exploration-only**.
+
+They are intentionally separated from production artifact generation to avoid:
+- cell-order side effects
+- environment drift
+- accidental metric leakage
+
+See:
+- [notebooks/README.md](notebooks/README.md)
+
+---
+
+## Outputs
+
+Typical production artifacts:
+
+### Ranking
+- `dash_app/data/metrics/ranking_metrics.csv`
+- `dash_app/data/metrics/valid_predictions.csv`
+- `dash_app/data/feature_importance.csv`
+
+### Signals
+- `dash_app/data/rules_top.csv`
+- `dash_app/data/cooc_top_pairs.csv`
+
+### EDA
+- `dash_app/data/eda_timeseries.csv`
+- `dash_app/data/top_categories.csv`
+
+---
+
+## Troubleshooting
+
+### `main...origin/main [behind N]` before push
+Run:
+```bash
+git pull --rebase origin main
+```
+Then push:
+```bash
+git push origin main
+```
+
+### Matplotlib cache warning
+Set writable cache path:
+```bash
+export MPLCONFIGDIR=/tmp/matplotlib
+```
+
+### CPU core detection warning (joblib/loky on macOS sandbox)
+Optional:
+```bash
+export LOKY_MAX_CPU_COUNT=4
+```
+
+### Missing artifacts in dashboard
+Re-run:
+```bash
+make pipeline-fast
+```
+
+---
+
+## Roadmap
+
+- richer ranking features (temporal and sequence-aware)
+- user-aware personalization features
+- lightweight API serving layer (FastAPI)
+- CI checks for pipeline consistency and artifact schema validation
+- automated drift diagnostics in dashboard
 
 ---
 
 ## Author
 
-**Gizem Totkanlı**  
-Data Scientist — Machine Learning / AI  
-
-Portfolio Project:  
-**Multi-Signal Basket Recommendation System**
-
-
-
+Gizem Totkanlı  
+Data Scientist (Machine Learning / AI)

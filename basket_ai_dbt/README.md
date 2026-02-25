@@ -1,15 +1,25 @@
-Welcome to your new dbt project!
+# basket_ai_dbt
 
-### Using the starter project
+`basket_ai_dbt` is the analytics engineering layer for the Basket AI project.
 
-Try running the following commands:
-- dbt run
-- dbt test
+## Model Layers
 
+- `staging` (`stg_baskets`, `stg_basket_items`)
+- `intermediate` (`int_basket_summary`)
+- `marts` (`mrt_daily_kpis`, `mrt_customer_summary`, `mrt_top_items_daily`, `mrt_category_daily_kpis`)
 
-### Resources:
-- Learn more about dbt [in the docs](https://docs.getdbt.com/docs/introduction)
-- Check out [Discourse](https://discourse.getdbt.com/) for commonly asked questions and answers
-- Join the [chat](https://community.getdbt.com/) on Slack for live discussions and support
-- Find [dbt events](https://events.getdbt.com) near you
-- Check out [the blog](https://blog.getdbt.com/) for the latest news on dbt's development and best practices
+## Notes
+
+- Staging models implement defensive parsing for `basket_date` and support:
+  - epoch nanoseconds
+  - epoch milliseconds / seconds
+  - timestamp/date-compatible raw values
+- Missing IDs are preserved with sentinel values and explicit flags.
+
+## Typical Commands
+
+```bash
+dbt deps
+dbt run
+dbt test
+```
