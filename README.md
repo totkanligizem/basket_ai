@@ -5,6 +5,45 @@ Production-style **basket recommendation system** with:
 - dashboard artifacts and executive monitoring
 - dbt analytics layer for BI-ready marts
 
+<!-- Dashboard Screenshots (Top) -->
+
+<p align="center">
+  <img src="assets/dashboard-overview.png" alt="Overview" width="900" />
+</p>
+<p align="center">
+  <img src="assets/dashboard-overview-2.png" alt="Overview (2)" width="900" />
+</p>
+
+<p align="center">
+  <img src="assets/dashboard-data-eda-full-view.png" alt="Data & EDA" width="900" />
+</p>
+<p align="center">
+  <img src="assets/dashboard-data-eda-full-view-2.png" alt="Data & EDA (2)" width="900" />
+</p>
+
+<p align="center">
+  <img src="assets/dashboard-candidate-signals.png" alt="Candidate Signals" width="900" />
+</p>
+<p align="center">
+  <img src="assets/dashboard-candidate-signals-2.png" alt="Candidate Signals (2)" width="900" />
+</p>
+
+<p align="center">
+  <img src="assets/dashboard-model-diagnostics.png" alt="Model Diagnostics" width="900" />
+</p>
+<p align="center">
+  <img src="assets/dashboard-model-diagnostics-2.png" alt="Model Diagnostics (2)" width="900" />
+</p>
+<p align="center">
+  <img src="assets/dashboard-model-diagnostics-3.png" alt="Model Diagnostics (3)" width="900" />
+</p>
+<p align="center">
+  <img src="assets/dashboard-model-diagnostics-4.png" alt="Model Diagnostics (4)" width="900" />
+</p>
+
+<hr/>
+
+
 This repository is designed to mirror a real recommendation stack where ranking quality depends first on candidate quality, then on robust model ordering.
 
 ---
