@@ -5,40 +5,58 @@ Production-style **basket recommendation system** with:
 - dashboard artifacts and executive monitoring
 - dbt analytics layer for BI-ready marts
 
-<!-- Dashboard Screenshots (Top) -->
+## Analyst Dashboard Previews
 
 <p align="center">
-  <img src="assets/dashboard-overview.png" alt="Overview" width="900" />
+  <img src="assets/basket-ai-analyst-executive-overview-main.png" alt="Analyst Dashboard - Executive Overview (Main)" width="900" />
 </p>
 <p align="center">
-  <img src="assets/dashboard-overview-2.png" alt="Overview (2)" width="900" />
-</p>
-
-<p align="center">
-  <img src="assets/dashboard-data-eda-full-view.png" alt="Data & EDA" width="900" />
+  <img src="assets/basket-ai-analyst-executive-overview-charts-section.png" alt="Analyst Dashboard - Executive Overview (Charts Section)" width="900" />
 </p>
 <p align="center">
-  <img src="assets/dashboard-data-eda-full-view-2.png" alt="Data & EDA (2)" width="900" />
-</p>
-
-<p align="center">
-  <img src="assets/dashboard-candidate-signals.png" alt="Candidate Signals" width="900" />
+  <img src="assets/basket-ai-analyst-category-item-performance-overview.png" alt="Analyst Dashboard - Category & Item Performance (Overview)" width="900" />
 </p>
 <p align="center">
-  <img src="assets/dashboard-candidate-signals-2.png" alt="Candidate Signals (2)" width="900" />
+  <img src="assets/basket-ai-analyst-category-item-performance-tables-section.png" alt="Analyst Dashboard - Category & Item Performance (Tables Section)" width="900" />
+</p>
+<p align="center">
+  <img src="assets/basket-ai-analyst-data-quality-health-overview.png" alt="Analyst Dashboard - Data Quality & Health (Overview)" width="900" />
+</p>
+<p align="center">
+  <img src="assets/basket-ai-analyst-data-quality-health-table-section.png" alt="Analyst Dashboard - Data Quality & Health (Table Section)" width="900" />
 </p>
 
+## Science Dashboard Previews
+
 <p align="center">
-  <img src="assets/dashboard-model-diagnostics.png" alt="Model Diagnostics" width="900" />
+  <img src="assets/dashboard-overview.png" alt="Science Dashboard - Overview" width="900" />
 </p>
 <p align="center">
-  <img src="assets/dashboard-model-diagnostics-2.png" alt="Model Diagnostics (2)" width="900" />
+  <img src="assets/dashboard-overview-2.png" alt="Science Dashboard - Overview (2)" width="900" />
 </p>
 <p align="center">
-  <img src="assets/dashboard-model-diagnostics-3.png" alt="Model Diagnostics (3)" width="900" />
+  <img src="assets/dashboard-data-eda-full-view.png" alt="Science Dashboard - Data & EDA" width="900" />
 </p>
 <p align="center">
-  <img src="assets/dashboard-model-diagnostics-4.png" alt="Model Diagnostics (4)" width="900" />
+  <img src="assets/dashboard-data-eda-full-view-2.png" alt="Science Dashboard - Data & EDA (2)" width="900" />
+</p>
+<p align="center">
+  <img src="assets/dashboard-candidate-signals.png" alt="Science Dashboard - Candidate Signals" width="900" />
+</p>
+<p align="center">
+  <img src="assets/dashboard-candidate-signals-2.png" alt="Science Dashboard - Candidate Signals (2)" width="900" />
+</p>
+<p align="center">
+  <img src="assets/dashboard-model-diagnostics.png" alt="Science Dashboard - Model Diagnostics" width="900" />
+</p>
+<p align="center">
+  <img src="assets/dashboard-model-diagnostics-2.png" alt="Science Dashboard - Model Diagnostics (2)" width="900" />
+</p>
+<p align="center">
+  <img src="assets/dashboard-model-diagnostics-3.png" alt="Science Dashboard - Model Diagnostics (3)" width="900" />
+</p>
+<p align="center">
+  <img src="assets/dashboard-model-diagnostics-4.png" alt="Science Dashboard - Model Diagnostics (4)" width="900" />
 </p>
 
 <hr/>
@@ -57,8 +75,8 @@ This repository is designed to mirror a real recommendation stack where ranking 
 6. [Detailed Pipeline Steps](#detailed-pipeline-steps)
 7. [Data and Privacy](#data-and-privacy)
 8. [Leakage-Safe Evaluation Design](#leakage-safe-evaluation-design)
-9. [Dashboard](#dashboard)
-10. [Analyst Dashboard](#analyst-dashboard)
+9. [Analyst Dashboard](#analyst-dashboard)
+10. [Dashboard](#dashboard)
 11. [dbt Layer](#dbt-layer)
 12. [Notebooks Policy](#notebooks-policy)
 13. [Outputs](#outputs)
@@ -271,15 +289,6 @@ Outputs:
 - `dash_app/data/analyst/basket_category_bridge.csv`
 
 ### 8) Launch dashboards
-Science dashboard:
-```bash
-make dashboard
-```
-or
-```bash
-python dash_app/app.py
-```
-
 Analyst dashboard:
 ```bash
 make dashboard-analyst
@@ -287,6 +296,15 @@ make dashboard-analyst
 or
 ```bash
 python dash_app/analyst_app.py
+```
+
+Science dashboard:
+```bash
+make dashboard
+```
+or
+```bash
+python dash_app/app.py
 ```
 
 ---
@@ -322,22 +340,6 @@ This avoids optimistic metrics caused by signal leakage from future baskets.
 
 ---
 
-## Dashboard
-
-Science dashboard app:
-- [dash_app/app.py](dash_app/app.py)
-- [dash_app/assets/style.css](dash_app/assets/style.css)
-
-Current science dashboard capabilities:
-- model selector and baseline delta panels
-- ranking curves by K
-- feature importance view
-- EDA trend cards (volume, revenue, AOV)
-- candidate signal summaries and table previews
-- robust placeholders for missing artifacts
-
----
-
 ## Analyst Dashboard
 
 Analyst dashboard app:
@@ -360,6 +362,22 @@ Current analyst dashboard capabilities:
 - Data Quality & Health: missing-rate trend and last-14-days completeness checks
 - linked filters: date range, category, city, and minimum daily basket threshold
 - compact scrollable tables with sticky headers for production readability
+
+---
+
+## Dashboard
+
+Science dashboard app:
+- [dash_app/app.py](dash_app/app.py)
+- [dash_app/assets/style.css](dash_app/assets/style.css)
+
+Current science dashboard capabilities:
+- model selector and baseline delta panels
+- ranking curves by K
+- feature importance view
+- EDA trend cards (volume, revenue, AOV)
+- candidate signal summaries and table previews
+- robust placeholders for missing artifacts
 
 ---
 
