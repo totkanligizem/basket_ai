@@ -147,6 +147,10 @@ body {
   gap: 18px;
 }
 
+.grid-start {
+  align-items: start;
+}
+
 .card {
   border: 1px solid var(--border);
   background: var(--card);
@@ -228,9 +232,14 @@ body {
   background: #ffffff;
 }
 
+.table-wrap-scroll {
+  overflow: auto;
+}
+
 .table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 .table th {
@@ -240,6 +249,9 @@ body {
   color: var(--ink-soft);
   border-bottom: 1px solid var(--line);
   background: rgba(15, 23, 42, 0.04);
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .table td {
@@ -247,6 +259,9 @@ body {
   font-size: 13px;
   border-bottom: 1px solid var(--line);
   color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .table tr:last-child td {
@@ -301,9 +316,82 @@ body {
   font-size: 12px;
 }
 
+.analyst-page .controls-wide {
+  width: min(460px, 100%);
+}
+
+.analyst-page .header {
+  flex-wrap: wrap;
+}
+
+.analyst-page .kpi-grid-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.analyst-page .date-range {
+  display: block;
+}
+
+.analyst-page .DateRangePicker,
+.analyst-page .DateRangePickerInput {
+  width: 100%;
+}
+
+.analyst-page .DateRangePickerInput {
+  display: flex;
+  align-items: center;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #ffffff;
+}
+
+.analyst-page .DateInput {
+  width: calc((100% - 34px) / 2);
+  min-width: 0;
+}
+
+.analyst-page .DateInput_input {
+  font-size: 13px;
+  padding: 9px 10px;
+  border: none;
+}
+
+.analyst-page .DateRangePickerInput_arrow {
+  width: 34px;
+  text-align: center;
+}
+
+.analyst-page .rc-slider-track {
+  background-color: var(--brand);
+}
+
+.analyst-page .rc-slider-handle {
+  border-color: var(--brand);
+}
+
+.filter-summary {
+  margin-top: 6px;
+  background: rgba(11, 110, 253, 0.08);
+  border-color: rgba(11, 110, 253, 0.18);
+  color: #1e3a8a;
+}
+
+.insight-strip {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+
 @media (max-width: 1140px) {
   .grid {
     grid-template-columns: 1fr;
+  }
+
+  .analyst-page .kpi-grid-4 {
+    grid-template-columns: 1fr 1fr;
   }
 }
 
@@ -317,6 +405,14 @@ body {
   }
 
   .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .analyst-page .controls-wide {
+    width: 100%;
+  }
+
+  .analyst-page .kpi-grid-4 {
     grid-template-columns: 1fr;
   }
 }

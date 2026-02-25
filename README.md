@@ -58,11 +58,12 @@ This repository is designed to mirror a real recommendation stack where ranking 
 7. [Data and Privacy](#data-and-privacy)
 8. [Leakage-Safe Evaluation Design](#leakage-safe-evaluation-design)
 9. [Dashboard](#dashboard)
-10. [dbt Layer](#dbt-layer)
-11. [Notebooks Policy](#notebooks-policy)
-12. [Outputs](#outputs)
-13. [Troubleshooting](#troubleshooting)
-14. [Roadmap](#roadmap)
+10. [Analyst Dashboard](#analyst-dashboard)
+11. [dbt Layer](#dbt-layer)
+12. [Notebooks Policy](#notebooks-policy)
+13. [Outputs](#outputs)
+14. [Troubleshooting](#troubleshooting)
+15. [Roadmap](#roadmap)
 
 ---
 
@@ -117,11 +118,13 @@ basket_ai/
 │   ├── run_production_pipeline.sh
 │   ├── train_ranker_leakage_safe.py
 │   ├── export_dashboard_artifacts.py
+│   ├── export_analyst_dashboard_artifacts.py
 │   └── make_phase2_parquets.py
 ├── dash_app/
 │   ├── app.py
+│   ├── analyst_app.py
 │   ├── assets/style.css
-│   └── data/...
+│   └── data/{metrics,analyst}/...
 ├── basket_ai_dbt/
 │   └── models/{staging,intermediate,marts}
 ├── notebooks/
@@ -242,7 +245,7 @@ Outputs:
 - `dash_app/data/rules_top.csv`
 - `dash_app/data/cooc_top_pairs.csv`
 
-### 6) Export dashboard EDA/category artifacts
+### 6) Export science dashboard artifacts
 ```bash
 python scripts/export_dashboard_artifacts.py
 ```
@@ -252,13 +255,38 @@ Outputs:
 - `dash_app/data/rules_top.csv`
 - `dash_app/data/cooc_top_pairs.csv`
 
-### 7) Launch dashboard
+### 7) Export analyst dashboard artifacts
+```bash
+python scripts/export_analyst_dashboard_artifacts.py
+```
+Outputs:
+- `dash_app/data/analyst/daily_metrics.csv`
+- `dash_app/data/analyst/category_daily_metrics.csv`
+- `dash_app/data/analyst/category_city_daily_metrics.csv`
+- `dash_app/data/analyst/city_daily_metrics.csv`
+- `dash_app/data/analyst/top_items.csv`
+- `dash_app/data/analyst/top_items_daily.csv`
+- `dash_app/data/analyst/quality_daily.csv`
+- `dash_app/data/analyst/basket_scope.csv`
+- `dash_app/data/analyst/basket_category_bridge.csv`
+
+### 8) Launch dashboards
+Science dashboard:
 ```bash
 make dashboard
 ```
 or
 ```bash
 python dash_app/app.py
+```
+
+Analyst dashboard:
+```bash
+make dashboard-analyst
+```
+or
+```bash
+python dash_app/analyst_app.py
 ```
 
 ---
@@ -296,17 +324,42 @@ This avoids optimistic metrics caused by signal leakage from future baskets.
 
 ## Dashboard
 
-Dashboard app:
+Science dashboard app:
 - [dash_app/app.py](dash_app/app.py)
 - [dash_app/assets/style.css](dash_app/assets/style.css)
 
-Current dashboard capabilities:
+Current science dashboard capabilities:
 - model selector and baseline delta panels
 - ranking curves by K
 - feature importance view
 - EDA trend cards (volume, revenue, AOV)
 - candidate signal summaries and table previews
 - robust placeholders for missing artifacts
+
+---
+
+## Analyst Dashboard
+
+Analyst dashboard app:
+- [dash_app/analyst_app.py](dash_app/analyst_app.py)
+- uses the same visual system in [dash_app/assets/style.css](dash_app/assets/style.css)
+
+Run analyst artifact export:
+```bash
+make export-analyst-data
+```
+
+Launch analyst dashboard:
+```bash
+make dashboard-analyst
+```
+
+Current analyst dashboard capabilities:
+- Executive Overview: revenue, basket volume, AOV, and basket diversity KPIs
+- Category & Item Performance: category Pareto, top items by revenue, city performance bubble view
+- Data Quality & Health: missing-rate trend and last-14-days completeness checks
+- linked filters: date range, category, city, and minimum daily basket threshold
+- compact scrollable tables with sticky headers for production readability
 
 ---
 
@@ -362,6 +415,17 @@ Typical production artifacts:
 - `dash_app/data/eda_timeseries.csv`
 - `dash_app/data/top_categories.csv`
 
+### Analyst Dashboard
+- `dash_app/data/analyst/daily_metrics.csv`
+- `dash_app/data/analyst/category_daily_metrics.csv`
+- `dash_app/data/analyst/category_city_daily_metrics.csv`
+- `dash_app/data/analyst/city_daily_metrics.csv`
+- `dash_app/data/analyst/top_items.csv`
+- `dash_app/data/analyst/top_items_daily.csv`
+- `dash_app/data/analyst/quality_daily.csv`
+- `dash_app/data/analyst/basket_scope.csv`
+- `dash_app/data/analyst/basket_category_bridge.csv`
+
 ---
 
 ## Troubleshooting
@@ -392,6 +456,12 @@ export LOKY_MAX_CPU_COUNT=4
 Re-run:
 ```bash
 make pipeline-fast
+```
+
+### Missing artifacts in analyst dashboard
+Re-run:
+```bash
+make export-analyst-data
 ```
 
 ---
