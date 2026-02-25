@@ -1,5 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap");
-
 :root {
   --bg: #f4f7fb;
   --ink: #0f172a;
@@ -23,10 +21,14 @@ body {
   min-height: 100%;
 }
 
+html {
+  overflow-y: scroll;
+}
+
 body {
   margin: 0;
   color: var(--ink);
-  font-family: "IBM Plex Sans", "Segoe UI", Arial, sans-serif;
+  font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   background:
     radial-gradient(circle at 10% -5%, rgba(11, 110, 253, 0.18), transparent 35%),
     radial-gradient(circle at 85% 0%, rgba(14, 165, 164, 0.14), transparent 30%),
@@ -58,7 +60,7 @@ body {
 
 .header h1 {
   margin: 8px 0 0;
-  font-family: "Space Grotesk", "Segoe UI", sans-serif;
+  font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   font-size: clamp(28px, 3vw, 40px);
   line-height: 1.1;
   letter-spacing: -0.03em;
@@ -78,7 +80,6 @@ body {
   border-radius: 16px;
   border: 1px solid var(--border);
   background: var(--card);
-  backdrop-filter: blur(8px);
   box-shadow: var(--shadow);
 }
 
@@ -132,7 +133,7 @@ body {
 }
 
 .content-lock {
-  min-height: 980px;
+  min-height: 0;
 }
 
 .stack {
@@ -152,11 +153,11 @@ body {
   border-radius: 18px;
   padding: 18px;
   box-shadow: var(--shadow);
-  backdrop-filter: blur(10px);
+  contain: layout paint;
 }
 
 .card-title {
-  font-family: "Space Grotesk", "Segoe UI", sans-serif;
+  font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   font-size: 18px;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -202,7 +203,7 @@ body {
 .kpi-value {
   margin-top: 5px;
   font-size: 30px;
-  font-family: "Space Grotesk", "Segoe UI", sans-serif;
+  font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   font-weight: 700;
   letter-spacing: -0.03em;
 }
@@ -264,12 +265,27 @@ body {
 
 .graph {
   width: 100%;
+  height: 380px;
+}
+
+.graph-sm {
+  height: 340px;
+}
+
+.graph-md {
+  height: 380px;
+}
+
+.graph-lg {
+  height: 430px;
 }
 
 .graph .js-plotly-plot,
 .graph .plot-container,
 .graph .svg-container {
-  min-height: 340px;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
 }
 
 .graph .js-plotly-plot {
@@ -288,10 +304,6 @@ body {
 @media (max-width: 1140px) {
   .grid {
     grid-template-columns: 1fr;
-  }
-
-  .content-lock {
-    min-height: 1260px;
   }
 }
 

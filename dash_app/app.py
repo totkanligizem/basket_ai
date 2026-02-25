@@ -21,8 +21,11 @@ FEAT_IMP_CSV = DATA_DIR / "feature_importance.csv"
 
 ALL_MODELS = "__all__"
 UI_REV = "dash_v2"
-GRAPH_CONFIG = {"displayModeBar": False, "scrollZoom": False, "responsive": True}
+GRAPH_CONFIG = {"displayModeBar": False, "scrollZoom": False, "responsive": False}
 MODEL_COLORS = ["#0b6efd", "#0ea5a4", "#f59e0b", "#d6336c", "#198754", "#6c757d"]
+GRAPH_HEIGHT_SM = 340
+GRAPH_HEIGHT_MD = 380
+GRAPH_HEIGHT_LG = 430
 
 
 def _read_csv(path: Path) -> pd.DataFrame | None:
@@ -174,7 +177,7 @@ def _metric_at_k(ranking: pd.DataFrame, model: str, metric: str, k_target: int =
     return float(nearest[metric]), int(nearest["k"])
 
 
-def _apply_figure_style(fig: go.Figure, title: str, height: int = 360) -> go.Figure:
+def _apply_figure_style(fig: go.Figure, title: str, height: int = GRAPH_HEIGHT_MD) -> go.Figure:
     fig.update_layout(
         template="plotly_white",
         paper_bgcolor="rgba(0,0,0,0)",
@@ -192,6 +195,8 @@ def _apply_figure_style(fig: go.Figure, title: str, height: int = 360) -> go.Fig
             bgcolor="rgba(255,255,255,0)",
         ),
         uirevision=UI_REV,
+        autosize=False,
+        transition={"duration": 0},
         colorway=MODEL_COLORS,
     )
     fig.update_xaxes(
@@ -226,7 +231,22 @@ def _empty_figure(title: str, message: str) -> go.Figure:
     )
     fig.update_xaxes(visible=False)
     fig.update_yaxes(visible=False)
-    return _apply_figure_style(fig, title=title, height=300)
+    return _apply_figure_style(fig, title=title, height=GRAPH_HEIGHT_SM)
+
+
+def graph_block(fig: go.Figure, size: str = "md") -> dcc.Graph:
+    size_to_height = {
+        "sm": GRAPH_HEIGHT_SM,
+        "md": GRAPH_HEIGHT_MD,
+        "lg": GRAPH_HEIGHT_LG,
+    }
+    height = size_to_height.get(size, GRAPH_HEIGHT_MD)
+    return dcc.Graph(
+        figure=fig,
+        config=GRAPH_CONFIG,
+        className=f"graph graph-{size}",
+        style={"height": f"{height}px"},
+    )
 
 
 def _ranking_figure(metric: str, selected_model: str) -> go.Figure:
@@ -474,8 +494,8 @@ def page_overview(selected_model: str) -> html.Div:
     charts = html.Div(
         className="stack",
         children=[
-            dcc.Graph(figure=_ranking_figure("ndcg", model), config=GRAPH_CONFIG, className="graph"),
-            dcc.Graph(figure=_ranking_figure("hit_rate", model), config=GRAPH_CONFIG, className="graph"),
+            graph_block(_ranking_figure("ndcg", model), size="md"),
+            graph_block(_ranking_figure("hit_rate", model), size="md"),
         ],
     )
 
@@ -491,17 +511,17 @@ def page_eda() -> html.Div:
         children=[
             card(
                 "Demand Volume",
-                [dcc.Graph(figure=_eda_volume_figure(), config=GRAPH_CONFIG, className="graph")],
+                [graph_block(_eda_volume_figure(), size="md")],
                 note="Use this chart to watch seasonality and sudden shifts.",
             ),
             card(
                 "Revenue and AOV",
-                [dcc.Graph(figure=_eda_revenue_figure(), config=GRAPH_CONFIG, className="graph")],
+                [graph_block(_eda_revenue_figure(), size="md")],
                 note="If revenue columns are missing, this panel will show a placeholder.",
             ),
             card(
                 "Category Mix",
-                [dcc.Graph(figure=_top_category_figure(), config=GRAPH_CONFIG, className="graph")],
+                [graph_block(_top_category_figure(), size="md")],
                 note="Top categories by unique basket participation.",
             ),
         ],
@@ -520,8 +540,8 @@ def page_signals() -> html.Div:
             html.Div(
                 className="grid",
                 children=[
-                    card("Rules Lift Distribution", [dcc.Graph(figure=_rules_lift_figure(), config=GRAPH_CONFIG, className="graph")]),
-                    card("Co-occurrence Strength", [dcc.Graph(figure=_pairs_figure(), config=GRAPH_CONFIG, className="graph")]),
+                    card("Rules Lift Distribution", [graph_block(_rules_lift_figure(), size="md")]),
+                    card("Co-occurrence Strength", [graph_block(_pairs_figure(), size="md")]),
                 ],
             ),
             html.Div(
@@ -553,11 +573,11 @@ def page_model(selected_model: str) -> html.Div:
                 children=[
                     card(
                         "Feature Importance",
-                        [dcc.Graph(figure=_feature_importance_figure(), config=GRAPH_CONFIG, className="graph")],
+                        [graph_block(_feature_importance_figure(), size="md")],
                     ),
                     card(
                         "Model Delta vs Baseline",
-                        [dcc.Graph(figure=_delta_figure(model), config=GRAPH_CONFIG, className="graph")],
+                        [graph_block(_delta_figure(model), size="md")],
                         note="Shows absolute metric improvement by K.",
                     ),
                 ],
@@ -642,4 +662,4 @@ def render(view: str, model: str):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False, dev_tools_hot_reload=False)
